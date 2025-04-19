@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import MonoLogo from "@/components/ui/mono-logo";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -42,8 +41,8 @@ export default function RootLayout({
           storageKey="theme"
         >
         <header className="flex items-center justify-between">
-          <Link href="/" legacyBehavior passHref>
-            <span className={`flex flex-row gap-0 hover:cursor-pointer`}>
+          <Link href="/" passHref>
+            <span className={`flex flex-row gap-0 hover:cursor-pointer hover:underline`}>
               <Image
                 src="/logo.ico"
                 alt="Home"
@@ -55,18 +54,22 @@ export default function RootLayout({
             </span>
           </Link>
           <span className={`flex flex-row gap-4 items-center`}>
-            <Link href="https://github.com/RoLO0u">
-              <MonoLogo
+            <Link href="https://github.com/RoLO0u" target="_blank">
+              <Image
+                width={30}
+                height={30} 
                 src="/github.svg"
                 alt="GitHub"
-                rgb="0,255,255"
+                className="dark:invert hover:drop-shadow-[0_0_1rem_rgb(150,150,150)] duration-300"
               />
             </Link>
-            <Link href="https://t.me/feddunn">
-              <MonoLogo
+            <Link href="https://t.me/feddunn" target="_blank">
+              <Image
+                width={30}
+                height={30}
                 src="/telegram.svg"
                 alt="Telegram"
-                rgb="200,200,200"
+                className="dark:invert hover:drop-shadow-[0_0_1rem_rgb(0,200,200)] duration-300"
               />
             </Link>
             <ModeToggle />
@@ -77,7 +80,13 @@ export default function RootLayout({
         </main>
         <footer className="mt-10 flex justify-center items-center">
           <p className="text-sm text-gray-500">
-            <Link href="/">Fedun.Site</Link>
+            <Link href="/" className="hover:underline">
+              Fedun.Site
+            </Link>
+            <span className="mx-2">|</span>
+            <Link href="/privacy" className="hover:underline">
+              Privacy Policy
+            </Link>
           </p>
         </footer>
         </ThemeProvider>
