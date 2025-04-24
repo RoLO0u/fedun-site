@@ -45,7 +45,7 @@ const AnalyzeResultPage = () => {
         return newReader;
       } return reader;
     });
-  }, []);
+  }, [file]);
 
   if (!file) {
     return <DefaultMain />;
