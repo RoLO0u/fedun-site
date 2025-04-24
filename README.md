@@ -5,14 +5,13 @@ This is a personal blog website built using [Next.js](https://nextjs.org/). It s
 ## Technologies Used
 
 - **Framework**: Next.js
-- **Styling**: Tailwind CSS
-- **Deployment**: Vercel or any other hosting platform
+- **Styling**: Tailwind CSS, shadcn
 
 ## Getting Started
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/fedun-site.git
+   git clone https://github.com/RoLO0u/fedun-site.git
    ```
 2. Navigate to the project directory:
    ```bash
