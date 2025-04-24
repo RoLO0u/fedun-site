@@ -52,7 +52,6 @@ const AnalyzePage = () => {
 
   function onInput(values: z.infer<typeof formSchema>) {
     const file = values.files;
-    console.log("File selected:", values.files);
     
     if (!file) {
       form.setError("files", {

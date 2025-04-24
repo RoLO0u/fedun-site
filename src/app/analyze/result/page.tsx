@@ -9,7 +9,7 @@ import DefaultMain from "@/components/defaultMain";
 
 import useFileStore from "@/lib/useFileStore";
 import setupReader from "@/lib/parseFile";
-import chatSchema from "@/lib/chatSchema";
+import { chatSchema } from "@/lib/chatSchema";
 import Loading from "./loading";
 
 const AnalyzeResultPage = () => {
@@ -36,6 +36,8 @@ const AnalyzeResultPage = () => {
             setJson(validatedJson);
           } catch (error) {
             console.error("Invalid JSON file or schema validation failed:", error);
+            router.push("/analyze");
+            return;
           }
         };
         newReader.readAsText(file);

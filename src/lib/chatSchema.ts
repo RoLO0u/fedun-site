@@ -198,11 +198,13 @@ const messageSchema = z.object({
     reactions: z.array(reactionsSchema).nullish(),
 });
 
+const messagesSchema = z.array(messageSchema);
+
 const chatSchema = z.object({
   id: z.number(),
   name: z.string().nullable(),
   type: chatEnums.chatType,
-  messages: z.array(messageSchema),
+  messages: messagesSchema,
 });
 
-export default chatSchema;
+export { chatSchema, messagesSchema};
