@@ -3,7 +3,7 @@ import { z } from "zod";
 import { messagesSchema } from "@/lib/chatSchema";
 import { ChartDataType, CountType } from "@/lib/dataSchema";
 
-const parseNullish = (value: any | null | undefined): any => {
+const parseNullish = (value: string | number | null | undefined): string | number => {
   if (value === null || value === undefined) {
     return "No data";
   }
@@ -21,12 +21,19 @@ const parseChartData = (
 
   messages.forEach((message) => {
     const from_id = parseNullish(message.from_id);
+    const from = parseNullish(message.from);
+    let newFrom: string;
+    if (typeof from === "number") {
+      newFrom = from.toString();
+    } else {
+      newFrom = from;
+    }
     if (chartData[from_id]) {
       chartData[from_id].count += 1;
     } else {
       chartData[from_id] = {
         count: 1,
-        from: parseNullish(message.from),
+        from: newFrom,
       };
     }
   });
