@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { Separator } from "@/components/ui/separator";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -75,19 +76,17 @@ export default function RootLayout({
             <ModeToggle />
           </span>
         </header>
-        <main className="flex-grow mt-4">
-          {children}
-        </main>
+        {children}
         <footer className="mt-10 flex justify-center items-center">
-          <p className="text-sm text-gray-500">
+          <div className="flex space-x-3 h-5 items-center">
             <Link href="/" className="hover:underline">
               Fedun.Site
             </Link>
-            <span className="mx-2">|</span>
+            <Separator orientation="vertical" />
             <Link href="/privacy" className="hover:underline">
               Privacy Policy
             </Link>
-          </p>
+          </div>
         </footer>
         </ThemeProvider>
       </body>

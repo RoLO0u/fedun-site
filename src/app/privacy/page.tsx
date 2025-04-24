@@ -2,7 +2,7 @@ import React from 'react';
 
 const PrivacyPolicyPage = () => {
     return (
-        <div className='flex flex-col gap-4'>
+        <main className='flex flex-grow mt-5 flex-col gap-3'>
             <h1 className='text-lg'>Privacy Policy</h1>
             <p className='text-gray-500 dark:text-gray-400'>Last updated: September 10, 2024</p>
             <p>This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.</p>
@@ -192,7 +192,7 @@ const PrivacyPolicyPage = () => {
             </ul>
             <h1>Migration</h1>
             <p>If We migrate to another domain we don't take any responsibility on use this domain by other owners</p>
-        </div>
+        </main>
     );
 };
 
