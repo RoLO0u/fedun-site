@@ -6,8 +6,8 @@ import { z } from "zod";
 import { parseDate, parseChartData } from "@/lib/parseData";
 import { chatSchema } from "@/lib/chatSchema";
 
-import { Bar, BarChart, XAxis, YAxis, LabelList } from "recharts";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
+import { type ChartConfig } from "./ui/chart";
+import { CustomChart } from "./ui/customChart";
 
 interface AnalyzedProps {
   json: z.infer<typeof chatSchema>;
@@ -36,51 +36,26 @@ const Analyzed: React.FC<AnalyzedProps> = ({ json }) => {
           Last message sent: {parseDate(json.messages[json.messages.length - 1].date)}
         </p>
       </div>
-      <ChartContainer config={chartConfig} className="w-full" style={{ maxHeight: `${chartData.length*3}rem` }}>
-        <BarChart accessibilityLayer data={chartData} layout="vertical" margin={{ right: 16, left: 80 }}>
-          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-          <YAxis
-            dataKey="from"
-            type="category"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={10}
-            hide
-          />
-          <XAxis
-            type="number"
-            dataKey="count"
-            hide
-          />
-          <Bar
-            dataKey="count"
-            name="Count"
-            layout="vertical"
-            fill="var(--color-user)"
-            radius={4}
-          >
-            <LabelList
-              dataKey="from"
-              position="left"
-              formatter={(value: string) => {
-                return value.length > 11 ? `${value.slice(0, 9)}...` : value;
-              }}
-              style={{
-                fontSize: "0.8rem",
-                fontWeight: 500,
-                fill: "var(--foreground)",
-              }}
-            />
-            <LabelList
-              dataKey="count"
-              position="right"
-              style={{
-                fill: "var(--foreground)",
-              }}
-            />
-          </Bar>
-        </BarChart>
-      </ChartContainer>
+      <div className="w-full flex flex-wrap divide-y-[1px] max-h-[200vh]">
+        <div className="w-full xl:w-[50%] xl:border-r max-h-screen pb-2">
+          <p className="text-xl mb-1">
+            Messages per user:
+          </p>
+          <CustomChart chartConfig={chartConfig} chartData={chartData} />
+        </div>
+        <div className="w-full xl:w-[50%] max-h-screen pb-2">
+          <p className="text-xl mb-1">
+            Characters per user:
+          </p>
+          <CustomChart chartConfig={chartConfig} chartData={chartData} />
+        </div>
+        <div className="w-full xl:w-[50%] max-h-screen">
+          <p className="text-xl mb-1">
+            Most used words {"\(first 50 \)"}:
+          </p>
+          <CustomChart chartConfig={chartConfig} chartData={chartData} />
+        </div>
+      </div>
     </>
   );
 };

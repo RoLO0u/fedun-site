@@ -90,7 +90,8 @@ const AnalyzePage = () => {
           <CardTitle>Telegram Group Chat Analyzer</CardTitle>
           <CardDescription>
             Show activity of users in any group chat, their best messages, and
-            more
+            more <br />
+            ⚠️ Warning: the UI is broken on phones 📵  
           </CardDescription>
         </CardHeader>
         <CardContent>

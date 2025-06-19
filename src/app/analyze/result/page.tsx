@@ -52,7 +52,7 @@ const AnalyzeResultPage = () => {
   }
 
   return (
-    <main className="text-center items-center p-8 flex flex-col gap-4 flex-grow">
+    <main className="text-center items-center flex flex-col gap-4 flex-grow">
       {json ? (
         <Suspense fallback={<Loading />}>
           <Analyzed json={json} />

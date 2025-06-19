@@ -82,7 +82,7 @@ const inlineButtonSchema = z.object({
 });
 
 const recentReactionSchema = z.object({
-    from: z.string(),
+    from: z.string().nullable(),
     from_id: z.string(),
     date: z.string(),
 });
@@ -111,7 +111,7 @@ const messageSchema = z.object({
     from_id: z.string().nullish(),
     reply_to_message_id: z.number().nullish(),
     reply_to_peer_id: z.number().nullish(),
-    members: z.array(z.string()).nullish(),
+    members: z.array(z.string().nullable()).nullish(),
     self_destruct_period_seconds: z.number().nullish(),
     photo: z.string().nullish(),
     photo_file_size: z.number().nullish(),
