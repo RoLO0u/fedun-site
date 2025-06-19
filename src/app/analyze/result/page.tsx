@@ -4,13 +4,13 @@ import React, { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
+import { Loader2 } from "lucide-react";
 import Analyzed from "@/components/analyzed";
 import DefaultMain from "@/components/defaultMain";
 
 import useFileStore from "@/lib/useFileStore";
 import setupReader from "@/lib/parseFile";
 import { chatSchema } from "@/lib/chatSchema";
-import Loading from "./loading";
 
 const AnalyzeResultPage = () => {
   const router = useRouter();
@@ -52,13 +52,13 @@ const AnalyzeResultPage = () => {
   }
 
   return (
-    <main className="text-center items-center flex flex-col gap-4 flex-grow">
+    <main className="text-center items-center justify-center flex flex-col gap-4 flex-grow">
       {json ? (
-        <Suspense fallback={<Loading />}>
+        <Suspense fallback={<Loader2 className="animate-spin" />}>
           <Analyzed json={json} />
         </Suspense>
       ) : (
-        <Loading />
+        <Loader2 className="animate-spin" />
       )}
     </main>
   );

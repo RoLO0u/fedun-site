@@ -3,15 +3,16 @@
 import React from "react";
 import { z } from "zod";
 
-import { parseDate, parseChartData } from "@/lib/parseData";
+import { parseChartData } from "@/lib/parseData";
+import { parseDate } from "@/lib/utils";
 import { chatSchema } from "@/lib/chatSchema";
 
 import { type ChartConfig } from "./ui/chart";
 import { CustomChart } from "./ui/customChart";
 
 interface AnalyzedProps {
-  json: z.infer<typeof chatSchema>;
-}
+  json: z.infer<typeof chatSchema>,
+};
 
 const chartConfig = {
   user: {
@@ -24,7 +25,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const Analyzed: React.FC<AnalyzedProps> = ({ json }) => {
-
   const chartData = parseChartData(json.messages);
 
   return (
@@ -36,24 +36,15 @@ const Analyzed: React.FC<AnalyzedProps> = ({ json }) => {
           Last message sent: {parseDate(json.messages[json.messages.length - 1].date)}
         </p>
       </div>
-      <div className="w-full flex flex-wrap divide-y-[1px] max-h-[200vh]">
-        <div className="w-full xl:w-[50%] xl:border-r max-h-screen pb-2">
-          <p className="text-xl mb-1">
-            Messages per user:
-          </p>
-          <CustomChart chartConfig={chartConfig} chartData={chartData} />
+      <div className="w-full flex flex-wrap justify-between">
+        <div className="w-full xl:w-[49%] max-h-screen pb-2 xl:pb-8">
+          <CustomChart title="Messages per user" chartConfig={chartConfig} chartData={chartData.messagesPerUser} />
         </div>
-        <div className="w-full xl:w-[50%] max-h-screen pb-2">
-          <p className="text-xl mb-1">
-            Characters per user:
-          </p>
-          <CustomChart chartConfig={chartConfig} chartData={chartData} />
+        <div className="w-full xl:w-[49%] max-h-screen pb-2">
+          <CustomChart title="Characters per user" chartConfig={chartConfig} chartData={chartData.charactersPerUser} />
         </div>
-        <div className="w-full xl:w-[50%] max-h-screen">
-          <p className="text-xl mb-1">
-            Most used words {"\(first 50 \)"}:
-          </p>
-          <CustomChart chartConfig={chartConfig} chartData={chartData} />
+        <div className="w-full xl:w-[49%] max-h-screen">
+          <CustomChart title="Most used words" chartConfig={chartConfig} chartData={chartData.mostUsedWords} />
         </div>
       </div>
     </>

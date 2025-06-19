@@ -8,7 +8,7 @@ export default function Home() {
         <Link href="/analyze" className="text-xl hover:underline">
           Analyze telegram chats
         </Link>
-        <p className="text-gray-500 dark:text-gray-400">Last updated: June 18, 2025</p>
+        <p className="text-gray-500 dark:text-gray-400">Last updated: June 20, 2025</p>
       </div>
       <div>
         <Link href="https://t.me/paces_bot" target="_blank" className="text-xl hover:underline">

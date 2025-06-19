@@ -69,6 +69,7 @@ const actionType = z
     "send_star_gift",
     "paid_messages_refund",
     "paid_messages_price_change",
+    "set_messages_ttl"
   ]);
 
 const recurringType = z.enum([

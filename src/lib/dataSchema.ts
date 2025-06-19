@@ -10,14 +10,21 @@ const countSchema = z.record(
 
 type CountType = z.infer<typeof countSchema>;
 
-const chartDataSchema = z.object({
-  user_id: z.string(),
+const GenericChartSchema = z.object({
+  label: z.string(),
   count: z.number(),
-  from: z.string(),
+  id: z.string(),
 }).array();
 
-type ChartDataType = z.infer<typeof chartDataSchema>;
+const ChartDataSchema = z.object({
+  messagesPerUser: GenericChartSchema,
+  charactersPerUser: GenericChartSchema,
+  mostUsedWords: GenericChartSchema,
+})
 
-export { countSchema, chartDataSchema };
+type ChartDataType = z.infer<typeof ChartDataSchema>;
+type GenericChartType = z.infer<typeof GenericChartSchema>;
 
-export type { CountType, ChartDataType };
+export { countSchema, ChartDataSchema, GenericChartSchema };
+
+export type { CountType, ChartDataType, GenericChartType };
