@@ -136,7 +136,7 @@ const messageSchema = z.object({
     to_id: z.string().nullish(),
     distance: z.number().nullish(),
     duration: z.number().nullish(),
-    period: z.string().nullish(),
+    period: z.number().nullish(),
     schedule_date: z.number().nullish(),
     emoticon: z.string().nullish(),
     text: textSchema,
@@ -207,4 +207,8 @@ const chatSchema = z.object({
   messages: messagesSchema,
 });
 
+type MessagesType = z.infer<typeof messagesSchema>;
+type TextType = z.infer<typeof textSchema>;
+
 export { chatSchema, messagesSchema};
+export type { MessagesType, TextType };
