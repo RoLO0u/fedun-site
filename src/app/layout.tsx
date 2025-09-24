@@ -97,6 +97,10 @@ export default function RootLayout({
             <Link href="https://github.com/RoLO0u/fedun-site" target="_blank" className="hover:underline sm:flex items-center gap-1 hidden">
               Source Code <ExternalLinkIcon className="w-4 h-4 mb-0.5"/>
             </Link>
+            <Separator orientation="vertical" className="hidden sm:block" />
+            <Link href="/admin" className="hover:underline hidden sm:block">
+              Admin Panel
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger className="visible sm:hidden">
                 <MenuIcon className="h-6 w-6"/>
