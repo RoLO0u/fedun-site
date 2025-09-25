@@ -118,7 +118,7 @@ export default function RootLayout({
                         Fedun.Site 
                       </DropdownMenuItem>
                     </Link>
-                    <Link href="/contact" className="hover:underline">
+                    <Link href="/contact" className="hover:underline flex">
                       <DropdownMenuItem>
                         Contact me
                       </DropdownMenuItem>
@@ -126,6 +126,11 @@ export default function RootLayout({
                     <Link href="https://github.com/RoLO0u/fedun-site" target="_blank" className="hover:underline flex items-center gap-1">
                       <DropdownMenuItem>
                         Source Code <ExternalLinkIcon className="w-4 h-4 mb-0.5"/>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/admin" className="hover:underline flex">
+                      <DropdownMenuItem>
+                        Admin Panel
                       </DropdownMenuItem>
                     </Link>
                   </DropdownMenuGroup>

@@ -9,13 +9,17 @@ interface Props {
 };
 
 const HomePage: FC<Props> = ({ lastUpdatedData }) => {
-    const formatedDates = lastUpdatedData.map(item => {
+    const formatedDates = Object();
+    
+    lastUpdatedData.map(item => {
         const date = new Date(item.date);
-        return date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        });
+        formatedDates[`date${item.id}`] =
+            date.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            }
+        )
     });
 
     return (
@@ -25,13 +29,13 @@ const HomePage: FC<Props> = ({ lastUpdatedData }) => {
             <Link href="/analyze" className="text-xl flex hover:underline">
             Analyze telegram chats
             </Link>
-            <p className="text-gray-500 dark:text-gray-400">Last updated: { formatedDates[0] }</p>
+            <p className="text-gray-500 dark:text-gray-400">Last updated: { formatedDates['date0'] }</p>
         </div>
         <div>
             <Link href="https://t.me/paces_bot" target="_blank" className="text-xl hover:underline">
             <p className="flex gap-2 items-center">Sticker Packs Bot <ExternalLinkIcon className="w-5 h-5 mb-0.5"/></p>
             </Link>
-            <p className="text-gray-500 dark:text-gray-400">Last updated: { formatedDates[1] }</p>
+            <p className="text-gray-500 dark:text-gray-400">Last updated: { formatedDates['date1'] }</p>
         </div>
         </main>
     );

@@ -15,7 +15,6 @@ const rawToSchema = (
     });
   }
   genericChartData.sort((a, b) => b.count - a.count);
-  console.log(genericChartData[0])
   return genericChartData.slice(0, split);
 }
 
