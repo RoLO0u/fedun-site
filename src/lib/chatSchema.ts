@@ -49,19 +49,6 @@ const giveawayResultsSchema = z.object({
     is_only_new_subscribers: z.string(),
 });
 
-const answersSchema = z.object({
-    text: z.string(),
-    voters: z.number(),
-    chosen: z.boolean(),
-});
-
-const pollSchema = z.object({
-    question: z.string(),
-    closed: z.boolean(),
-    total_voters: z.number(),
-    answers: z.array(answersSchema)
-});
-
 const textEntitySchema = z.object({
     type: chatEnums.chatEntity,
     text: z.string(),
@@ -71,6 +58,24 @@ const textEntitySchema = z.object({
     href: z.string().nullish(),
     collapsed: z.boolean().nullish(),
     none: z.string().nullish(),
+});
+
+const textSchema = z.union([
+    z.string(),
+    z.union([textEntitySchema, z.string()]).array(),
+]);
+
+const answersSchema = z.object({
+    text: textSchema,
+    voters: z.number(),
+    chosen: z.boolean(),
+});
+
+const pollSchema = z.object({
+    question: z.string(),
+    closed: z.boolean(),
+    total_voters: z.number(),
+    answers: z.array(answersSchema)
 });
 
 const inlineButtonSchema = z.object({
@@ -95,11 +100,6 @@ const reactionsSchema = z.object({
     recent: z.array(recentReactionSchema).nullish(),
 });
 
-const textSchema = z.union([
-    z.string(),
-    z.union([textEntitySchema, z.string()]).array(),
-]);
-
 const messageSchema = z.object({
     id: z.number(),
     type: chatEnums.messageType,
@@ -110,7 +110,7 @@ const messageSchema = z.object({
     from: z.string().nullish(),
     from_id: z.string().nullish(),
     reply_to_message_id: z.number().nullish(),
-    reply_to_peer_id: z.number().nullish(),
+    reply_to_peer_id: z.union([z.number(), z.string()]).nullish(),
     members: z.array(z.string().nullable()).nullish(),
     self_destruct_period_seconds: z.number().nullish(),
     photo: z.string().nullish(),

@@ -79,7 +79,9 @@ export default function RootLayout({
             <ModeToggle />
           </span>
         </header>
-        {children}
+        <main className="flex-1 flex flex-col">
+          {children}
+        </main>
         <footer className="mt-10 flex justify-center items-center">
           <div className="flex space-x-3 h-5 items-center">
             <Link href="/" className="hover:underline hidden sm:block" >
