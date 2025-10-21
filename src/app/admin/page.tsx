@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { SignOutButton } from "@/components/authButton";
+import { User, columns } from "@/lib/column";
+import { DataTable } from "@/components/data-table";
 
 const AdminPage = () => {
-    let mounted = false;
     const [saveLabel, setSaveLabel] = useState<string>("Save");
     const [analyzerDate, setAnalyzerDate] = useState<Date | undefined>(undefined)
     const [botDate, setBotDate] = useState<Date | undefined>(undefined)
+    const [users, setUsers] = useState<User[] | null>(null);
     const {
         data: session,
         isPending,
@@ -38,10 +40,18 @@ const AdminPage = () => {
             .then((data: 
                 { id: number, date: string }[]
             ) => {
-                if (mounted) return;
                 setAnalyzerDate(new Date(data.find((proj: {id: number, date: string}) => proj.id === 0)!.date));
                 setBotDate(new Date(data.find((proj: {id: number, date: string}) => proj.id === 1)!.date));
-                mounted = true;
+            })
+            .catch(console.error)
+        fetch("/api/users/get-all")
+            .then((res) => {
+                if (!res.ok) throw new Error(`Failed to fetch users: ${res.status}`);
+                return res.json();
+            })
+            .then((data: User[]
+            ) => {
+                setUsers(data);
             })
             .catch(console.error)
     }, [isPending]);
@@ -110,6 +120,7 @@ const AdminPage = () => {
                 }}>
                     {saveLabel}
                 </Button>
+                <DataTable columns={columns} data={users || []} />
                 <SignOutButton authClient={authClient} refetch={refetch} />
             </div>
         </div>

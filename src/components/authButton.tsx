@@ -2,7 +2,8 @@
  
 import { AuthClient } from "@/lib/auth-client";
 import * as React from "react"
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
  
 export function SignOutButton({
   authClient,
@@ -66,8 +67,10 @@ export function SignUpButton({
   nameRef: React.RefObject<HTMLInputElement | null>;
   setErrorState: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
-    return (
-      <Button variant="secondary" onClick={() => {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <Popover open={open}>
+      <PopoverTrigger className={buttonVariants({ variant: "secondary" })} onClick={() => {
         authClient.signUp.email(
           {
             email: emailRef!.current!.value,
@@ -75,16 +78,24 @@ export function SignUpButton({
             name: nameRef!.current!.value,
           }, {
             onSuccess: (ctx) => {
-              alert("Account created! You can now log in.");
-              setErrorState(null);
-            },
-            onError: (ctx) => {
-              setErrorState(ctx.error.message);
-            },
-          }
-        );
-      }} >
-        Sign Up
-      </Button>
-    );
+                setOpen(true);
+                setErrorState(null);
+              },
+              onError: (ctx) => {
+                setErrorState(ctx.error.message);
+              },
+            }
+          );
+        }} >
+          Sign Up
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-fit"
+        onInteractOutside={() => setOpen(false)}
+        onEscapeKeyDown={() => setOpen(false)}
+      >
+        <div className="font-medium">Success!</div>
+      </PopoverContent>
+    </Popover>
+  );
 }
