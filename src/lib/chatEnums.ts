@@ -69,7 +69,8 @@ const actionType = z
     "send_star_gift",
     "paid_messages_refund",
     "paid_messages_price_change",
-    "set_messages_ttl"
+    "set_messages_ttl",
+    "todo_completions",
   ]);
 
 const recurringType = z.enum([
@@ -82,6 +83,7 @@ const discardReason = z.enum([
     "disconnect",
     "hangup",
     "missed",
+    "migrate_conference_all",
     "",
 ]);
 

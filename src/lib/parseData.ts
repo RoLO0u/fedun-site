@@ -4,12 +4,13 @@ import { ChartDataType } from "@/lib/dataSchema";
 import { calculateMessagesPerUser, calculateCharactersPerUser, calculateMostUsedWords } from "./calculateMessages";
 
 const parseChartData = (
-  messages: MessagesType
+  messages: MessagesType,
+  minLength: number,
 ): ChartDataType => {
   return {
     messagesPerUser: calculateMessagesPerUser(messages),
     charactersPerUser: calculateCharactersPerUser(messages),
-    mostUsedWords: calculateMostUsedWords(messages),
+    mostUsedWords: calculateMostUsedWords(messages, minLength),
   };
 };
 

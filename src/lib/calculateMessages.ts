@@ -74,7 +74,8 @@ const calculateCharactersPerUser = (
 }
 
 const calculateMostUsedWords = (
-  messages: MessagesType
+  messages: MessagesType,
+  minLength: number
 ): GenericChartType => {
   const rawCount: CountType = {};
 
@@ -93,7 +94,8 @@ const calculateMostUsedWords = (
       })
     }
     words.forEach((word) => {
-      if (word === "") {
+      word = word.toLowerCase().replace(RegExp("[!?.,)(@#$%^&*<>'\"\\/{}]"), "");
+      if (word.length < minLength) {
         return
       }
       if (rawCount[word]) {

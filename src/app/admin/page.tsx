@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { Project } from "./project";
@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { SignOutButton } from "@/components/authButton";
 
 const AdminPage = () => {
     let mounted = false;
@@ -45,28 +46,40 @@ const AdminPage = () => {
             .catch(console.error)
     }, [isPending]);
     
+    
+    if (isPending || !session) {
+        return (
+            <div className="flex flex-grow flex-col mt-5 gap-4 justify-center items-center" >
+                <h1 className="text-xl font-semibold">Admin Page</h1>
+                <Loader2 className="animate-spin" />
+            </div>
+        );
+    }
+    
     if (error) {
         return (
-            <main className="flex flex-grow flex-col mt-5 gap-4 justify-center items-center" >
+            <div className="flex flex-grow flex-col mt-5 gap-4 justify-center items-center" >
                 <h1 className="text-xl font-semibold">Admin Page</h1>
                 <div>Error: {error.status} - {error.message}<br/>{error.statusText}</div>
-            </main>
+            </div>
         );
     }
 
-    if (isPending) {
+    if (session.user.role !== "admin") {
         return (
-            <main className="flex flex-grow flex-col mt-5 gap-4 justify-center items-center" >
+            <div className="flex flex-grow flex-col mt-5 gap-4 justify-center items-center" >
                 <h1 className="text-xl font-semibold">Admin Page</h1>
-                <Loader2 className="animate-spin" />
-            </main>
+                <h1 className="text-lg font-semibold">Error 403 | Forbidden</h1>
+                <div>You do not have permission to access this page.</div>
+                <SignOutButton authClient={authClient} refetch={refetch} />
+            </div>
         );
     }
     
     return (
-        <main className="flex flex-grow flex-col mt-5 gap-4 justify-center items-center" >
+        <div className="flex flex-grow flex-col mt-5 gap-8 justify-center items-center" >
             <h1 className="text-2xl font-semibold flex-none mt-2">Admin Page</h1>
-            <div className="flex-1 flex flex-col gap-4 justify-center items-center w-full">
+            <div className="flex flex-col gap-4 justify-center items-center w-full">
                 <Project label="Chat analyzer" date={analyzerDate!} setDate={setAnalyzerDate} />
                 <Separator className="max-w-1/3" />
                 <Project label="Sticker bot" date={botDate!} setDate={setBotDate} />
@@ -97,14 +110,9 @@ const AdminPage = () => {
                 }}>
                     {saveLabel}
                 </Button>
-                <Button variant="destructive" className="hover:cursor-pointer" onClick={() => {
-                    authClient.signOut();
-                    refetch();
-                }}>
-                    Sign out
-                </Button>
+                <SignOutButton authClient={authClient} refetch={refetch} />
             </div>
-        </main>
+        </div>
     );
 }
 

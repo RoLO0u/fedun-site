@@ -44,32 +44,25 @@ function CustomChart({
               dataKey="count"
               name="Count"
               layout="vertical"
-              fill="var(--color-user)"
+              fill="var(--chart-4)"
               radius={4}
             >
               <LabelList
                 dataKey="label"
-                position="left"
-                formatter={(value: string) => {
-                  let length: number;
-                  const width = window.innerWidth;
-                  if (width >= 768) {
-                    length = 7;
-                  } else {
-                    length = 5;
-                  }
-                  const text = value.replaceAll(' ', '\u00A0');
-                  return value.length > length ? `${text.slice(0, length-1)}...` : text;
-                }}
+                position="insideLeft"
+                // formatter={(value: string) => {
+                //   let length: number;
+                //   const width = window.innerWidth;
+                //   if (width >= 768) {
+                //     length = 7;
+                //   } else {
+                //     length = 5;
+                //   }
+                //   const text = value.replaceAll(' ', '\u00A0');
+                //   return value.length > length ? `${text.slice(0, length-1)}...` : text;
+                // }}
                 style={{
-                  fill: "var(--foreground)",
-                }}
-              />
-              <LabelList
-                dataKey="count"
-                position="right"
-                style={{
-                  fill: "var(--foreground)",
+                  fill: "var(--secondary-foreground)",
                 }}
               />
             </Bar>
