@@ -1,11 +1,13 @@
-# Personal Blog Website
+# Personal Website
 
-This is a personal blog website built using [Next.js](https://nextjs.org/). It serves as a platform to share articles, thoughts, and updates on various topics.
+My really interesting stuff
 
 ## Technologies Used
 
 - **Framework**: Next.js
 - **Styling**: Tailwind CSS, shadcn
+- **Authentication**: NextAuth.js
+- **Database**: PostgreSQL
 
 ## Getting Started
 
@@ -21,11 +23,12 @@ This is a personal blog website built using [Next.js](https://nextjs.org/). It s
    ```bash
    npm install
    ```
-4. Run the development server:
+4. Configure the environment. Use .env.example as a guide
+5. Run the development server:
    ```bash
    npm run dev
    ```
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the website.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the website.
 
 ## Deployment
 
