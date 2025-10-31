@@ -2,6 +2,8 @@
  
 import {
   ColumnDef,
+  SortingState,
+  getSortedRowModel,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -17,21 +19,45 @@ import {
   TableRow,
 } from "./ui/table";
 import { Button } from "./ui/button";
+import React from "react";
  
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  setData: React.Dispatch<React.SetStateAction<TData[] | null>>
 }
- 
+
 export function DataTable<TData, TValue>({
   columns,
   data,
+  setData,
 }: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: false }
+  ])
+
   const table = useReactTable({
     data,
     columns,
+    meta: {
+      updateData: (rowIndex: number, columnId: string, value: unknown) => {
+        setData((old) => {
+          if (old === null) return [];
+          return old.map((row, index) =>
+            index === rowIndex
+              ? { ...row, [columnId]: value }
+              : row )
+          }
+        );
+      },
+    },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
   })
  
   return (

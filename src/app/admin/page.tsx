@@ -120,7 +120,7 @@ const AdminPage = () => {
                 }}>
                     {saveLabel}
                 </Button>
-                <DataTable columns={columns} data={users || []} />
+                <DataTable columns={columns} data={users || []} setData={setUsers} />
                 <SignOutButton authClient={authClient} refetch={refetch} />
             </div>
         </div>
