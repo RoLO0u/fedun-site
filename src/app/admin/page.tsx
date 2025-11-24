@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { Project } from "./project";
@@ -11,18 +11,119 @@ import { Loader2 } from "lucide-react";
 import { SignOutButton } from "@/components/authButton";
 import { User, columns } from "@/lib/column";
 import { DataTable } from "@/components/data-table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+type BulkActionType = "verify" | "ban" | "delete";
 
 const AdminPage = () => {
     const [saveLabel, setSaveLabel] = useState<string>("Save");
     const [analyzerDate, setAnalyzerDate] = useState<Date | undefined>(undefined)
     const [botDate, setBotDate] = useState<Date | undefined>(undefined)
     const [users, setUsers] = useState<User[] | null>(null);
+    const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+    const [selectionResetSignal, setSelectionResetSignal] = useState(0);
+    const [bulkAction, setBulkAction] = useState<BulkActionType | null>(null);
+    const [bulkLoading, setBulkLoading] = useState(false);
     const {
         data: session,
         isPending,
         error,
         refetch,
     } = authClient.useSession();
+    const selectedCount = selectedUsers.length;
+    const bulkActionCopy = useMemo(() => ({
+        verify: {
+            title: "Verify selected users",
+            description: `Mark ${selectedCount} selected user${selectedCount === 1 ? "" : "s"} as verified.`,
+            confirmText: "Verify users",
+            variant: "default" as const,
+        },
+        ban: {
+            title: "Ban selected users",
+            description: `Set the banned flag for ${selectedCount} selected account${selectedCount === 1 ? "" : "s"}.`,
+            confirmText: "Ban users",
+            variant: "destructive" as const,
+        },
+        delete: {
+            title: "Delete selected users",
+            description: `Permanently delete ${selectedCount} account${selectedCount === 1 ? "" : "s"}. This removes their login access and related sessions.`,
+            confirmText: "Delete users",
+            variant: "destructive" as const,
+        },
+    }), [selectedCount]);
+
+    const closeBulkDialog = () => {
+        if (bulkLoading) return;
+        setBulkAction(null);
+    };
+
+    const handleBulkAction = async () => {
+        if (!bulkAction || selectedCount === 0) return;
+        const ids = selectedUsers.map((user) => user.id);
+        setBulkLoading(true);
+        try {
+            const ensureOk = async (res: Response) => {
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(text || `Request failed with status ${res.status}`);
+                }
+            };
+
+            if (bulkAction === "verify") {
+                await Promise.all(
+                    ids.map((userId) =>
+                        fetch(`/api/users/verify-email?userId=${userId}&verify=true`, {
+                            method: "POST",
+                        }).then(ensureOk)
+                    )
+                );
+                setUsers((prev) =>
+                    prev?.map((user) =>
+                        ids.includes(user.id) ? { ...user, emailVerified: true } : user
+                    ) ?? prev
+                );
+            }
+
+            if (bulkAction === "ban") {
+                await Promise.all(
+                    ids.map((userId) =>
+                        fetch("/api/users/ban", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ userId, banned: true }),
+                        }).then(ensureOk)
+                    )
+                );
+                setUsers((prev) =>
+                    prev?.map((user) =>
+                        ids.includes(user.id) ? { ...user, banned: true } : user
+                    ) ?? prev
+                );
+            }
+
+            if (bulkAction === "delete") {
+                await Promise.all(
+                    ids.map((userId) =>
+                        fetch("/api/users/delete", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ userId }),
+                        }).then(ensureOk)
+                    )
+                );
+                setUsers((prev) => prev?.filter((user) => !ids.includes(user.id)) ?? prev);
+            }
+
+            setSelectionResetSignal((prev) => prev + 1);
+            setSelectedUsers([]);
+            setBulkAction(null);
+        } catch (err) {
+            console.error(err);
+            alert(`Bulk action failed: ${(err as Error).message}`);
+        } finally {
+            setBulkLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (!isPending && !session) {
@@ -120,9 +221,68 @@ const AdminPage = () => {
                 }}>
                     {saveLabel}
                 </Button>
-                <DataTable columns={columns} data={users || []} setData={setUsers} />
+                <div className="flex w-full flex-col gap-3">
+                    <div className="flex flex-wrap gap-2 justify-end">
+                        <Button
+                            variant="secondary"
+                            disabled={selectedCount === 0}
+                            onClick={() => setBulkAction("verify")}
+                        >
+                            Verify selected
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            disabled={selectedCount === 0}
+                            onClick={() => setBulkAction("ban")}
+                        >
+                            Ban selected
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            disabled={selectedCount === 0}
+                            onClick={() => setBulkAction("delete")}
+                        >
+                            Delete selected
+                        </Button>
+                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={users || []}
+                        setData={setUsers}
+                        onSelectionChange={setSelectedUsers}
+                        clearSelectionSignal={selectionResetSignal}
+                    />
+                </div>
                 <SignOutButton authClient={authClient} refetch={refetch} />
             </div>
+            <Dialog open={!!bulkAction} onOpenChange={(open) => {
+                if (!open) {
+                    closeBulkDialog();
+                }
+            }}>
+                {bulkAction && (
+                    <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>{bulkActionCopy[bulkAction].title}</DialogTitle>
+                            <DialogDescription>
+                                {bulkActionCopy[bulkAction].description}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="mt-4">
+                            <Button variant="outline" onClick={closeBulkDialog} disabled={bulkLoading}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant={bulkActionCopy[bulkAction].variant}
+                                onClick={handleBulkAction}
+                                disabled={bulkLoading}
+                            >
+                                {bulkLoading ? "Working..." : bulkActionCopy[bulkAction].confirmText}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                )}
+            </Dialog>
         </div>
     );
 }

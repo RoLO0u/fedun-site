@@ -8,6 +8,7 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
+  RowSelectionState,
 } from "@tanstack/react-table";
  
 import {
@@ -25,18 +26,28 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   setData: React.Dispatch<React.SetStateAction<TData[] | null>>
+  onSelectionChange?: (rows: TData[]) => void
+  clearSelectionSignal?: number
+}
+
+type DataTableMeta = {
+  updateData: (rowIndex: number, columnId: string, value: unknown) => void
+  removeRow: (rowIndex: number) => void
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   setData,
+  onSelectionChange,
+  clearSelectionSignal,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: false }
   ])
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
 
-  const table = useReactTable({
+  const table = useReactTable<TData>({
     data,
     columns,
     meta: {
@@ -50,15 +61,35 @@ export function DataTable<TData, TValue>({
           }
         );
       },
-    },
+      removeRow: (rowIndex: number) => {
+        setData((old) => {
+          if (!old) return [];
+          return old.filter((_, index) => index !== rowIndex);
+        });
+      },
+    } satisfies DataTableMeta,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
+      rowSelection,
     },
   })
+
+  React.useEffect(() => {
+    if (!onSelectionChange) return;
+    const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
+    onSelectionChange(selectedRows);
+  }, [rowSelection, table, onSelectionChange])
+
+  React.useEffect(() => {
+    if (clearSelectionSignal === undefined) return;
+    table.resetRowSelection();
+  }, [clearSelectionSignal, table])
  
   return (
     <div>
