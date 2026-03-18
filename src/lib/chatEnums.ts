@@ -71,6 +71,7 @@ const actionType = z
     "paid_messages_price_change",
     "set_messages_ttl",
     "todo_completions",
+    "todo_append_tasks",
   ]);
 
 const recurringType = z.enum([
