@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, Suspense } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
@@ -9,15 +9,13 @@ import Analyzed from "@/components/analyzed";
 import DefaultMain from "@/components/defaultMain";
 
 import useFileStore from "@/lib/useFileStore";
-import setupReader from "@/lib/parseFile";
 import { chatSchema } from "@/lib/chatSchema";
 
 const AnalyzeResultPage = () => {
   const router = useRouter();
   const file = useFileStore((state) => state.file);
-  const [reader, setReader] = useState<FileReader | null>(null);
-  const initializedReader = useRef(false);
   const [json, setJson] = useState<z.infer<typeof chatSchema> | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     if (!file) {
@@ -25,30 +23,50 @@ const AnalyzeResultPage = () => {
       router.push("/analyze");
       return;
     }
-    setReader(() => {
-      if (!initializedReader.current) {
-        const newReader = setupReader();
-        newReader.onload = (event) => {
-          const jsonString = event.target?.result as string;
-          try {
-            const parsedJson = JSON.parse(jsonString);
-            const validatedJson = chatSchema.parse(parsedJson);
-            setJson(validatedJson);
-          } catch (error) {
-            console.error("Invalid JSON file or schema validation failed:", error);
-            router.push("/analyze");
-            return;
-          }
-        };
-        newReader.readAsText(file);
-        initializedReader.current = true;
-        return newReader;
-      } return reader;
-    });
-  }, [file]);
+    let cancelled = false;
+
+    const analyzeFile = async () => {
+      try {
+        const jsonString = await file.text();
+        const parsedJson = JSON.parse(jsonString);
+        const validatedJson = chatSchema.parse(parsedJson);
+
+        if (!cancelled) {
+          setJson(validatedJson);
+        }
+      } catch (error) {
+        console.error("Invalid JSON file or schema validation failed:", error);
+
+        if (!cancelled) {
+          setError(
+            error instanceof SyntaxError
+              ? "The selected file is not valid JSON."
+              : "The selected file does not match the expected chat export schema."
+          );
+        }
+      }
+    };
+
+    analyzeFile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [file, router]);
 
   if (!file) {
     return <DefaultMain />;
+  }
+
+  if (error) {
+    return (
+      <main className="text-center items-center justify-center flex flex-col gap-4 flex-grow px-4">
+        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-muted-foreground">
+          Check that the export is complete and has not been edited or truncated.
+        </p>
+      </main>
+    );
   }
 
   return (
