@@ -28,4 +28,4 @@ export const POST = withAuth(async (request: NextRequest) => {
       { status: 500 }
     );
   }
-}, {requireAdmin: true});
+}, { requireVerifiedEmail: true });

@@ -69,7 +69,7 @@ const LinkPage = () => {
       });
 
       if (res.status === 401) {
-        setErrorState("Unauthorized. Please log in as an admin to generate short links.");
+        setErrorState("Unauthorized. Please verify your email before creating URLs.");
         return;
       }
 
@@ -89,7 +89,7 @@ const LinkPage = () => {
   }
 
   return (
-    <main className="flex gap-2 flex-col grow justify-center items-center h-full">
+    <main className="flex gap-2 grow justify-center items-center h-full">
       <Card className="gap-4 sm:w-96 w-90 md:w-120">
         <CardHeader>
           <CardTitle>Simple URL Shortener</CardTitle>

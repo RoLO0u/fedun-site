@@ -32,3 +32,11 @@ export const incrementAccessCount = async (shortUrl: string) => {
 
   return updatedLink[0];
 }
+
+export const deleteLinkByShortUrl = async (shortUrl: string) => {
+  const deletedLink = await db.delete(link)
+    .where(eq(link.shortUrl, shortUrl))
+    .returning();
+
+  return deletedLink[0];
+}

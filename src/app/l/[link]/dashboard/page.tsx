@@ -15,13 +15,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const dashboardPage = () => {
   const params = useParams();
   const searchParams = useSearchParams();
   const linkParam = params?.link as string | undefined;
   const created = searchParams?.get("created");
-  const ref = useRef<ReactQRCodeRef>(null)
+  const ref = useRef<ReactQRCodeRef>(null);
+  const [errorState, setErrorState] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [foundLink, setFoundLink] = useState<any>(null);
 
@@ -57,7 +60,7 @@ const dashboardPage = () => {
 
   return (
     <main className="flex gap-4 items-center flex-wrap justify-center grow h-full">
-      <Card className="gap-4 sm:w-96 w-90 md:w-120">
+      <Card className="gap-4 px-5">
         <CardHeader>
           <CardTitle className="text-2xl font-bold mb-4">Dashboard for {foundLink.url}</CardTitle>
         </CardHeader>
@@ -102,9 +105,23 @@ const dashboardPage = () => {
               </Popover>
             </div>
           </div>
+          <Separator className="my-2" />
+          <div className="w-full flex justify-end">
+            <Button variant="destructive" onClick={() => {setDeleteDialogOpen(true)}}>
+              Delete
+            </Button>
+          </div>
         </CardContent>
       </Card>
       <div>
+        {errorState &&
+          <Alert className="mb-4 py-5 px-7 max-w-fit text-lg">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {errorState}
+            </AlertDescription>
+          </Alert>
+        }
         {created === "true" && 
         <Alert className="mb-4 py-5 px-7 max-w-fit text-lg">
           <AlertTitle>Your redirect was added to you clipboard!</AlertTitle>
@@ -133,6 +150,36 @@ const dashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+      <Dialog open={!!deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Short Link</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this short link? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={async () => {
+
+              const res = await fetch(`/api/shortener/delete`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ shortUrl: foundLink.shortUrl }),
+              });
+
+              if (res.ok) {
+                window.location.href = "/l";
+              } else {
+                const data = await res.json();
+                setErrorState(data.error || "Failed to delete short link");
+              }
+            }}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
