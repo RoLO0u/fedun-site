@@ -6,4 +6,5 @@ export const lastUpdated = pgTable("app_last_updated", {
 });
 
 import { user, session, verification, account } from "./auth-schema";
-export { user, session, verification, account };
+import { link } from "./link-schema";
+export { user, session, verification, account, link };

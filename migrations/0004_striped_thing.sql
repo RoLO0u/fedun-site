@@ -1,0 +1,1 @@
+ALTER TABLE "link" ADD COLUMN "collect_stats" boolean DEFAULT false NOT NULL;

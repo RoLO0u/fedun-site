@@ -15,7 +15,7 @@ const LoginPage = () => {
     const nameRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
     return (
-        <div className="flex flex-grow flex-row mt-5 gap-4 justify-center items-center" >
+        <div className="flex flex-col grow xl:flex-row mt-5 gap-4 justify-center items-center" >
             <div className="flex flex-col gap-4 justify-center items-center">
                 <h1 className="text-xl font-semibold">Admin Page</h1>
                 <div>Welcome to the admin page.</div>

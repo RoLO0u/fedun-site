@@ -32,14 +32,14 @@ import {
 import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
-  files: z
-    .instanceof(File, {
-      message: "File is required.",})
+  files: z.file({
+            error: "File is required."
+        })
     .refine(
       (file) => file.type === "application/json",
       {
-        message: "File must be a JSON file",
-      }),
+          error: "File must be a JSON file"
+    }),
 });
 
 const AnalyzePage = () => {
@@ -56,8 +56,8 @@ const AnalyzePage = () => {
     if (!file) {
       form.setError("files", {
         type: "manual",
-        message: "No file selected",
-      });
+        message: "No file selected"
+    });
       return;
     }
     setFile(file);
@@ -74,7 +74,7 @@ const AnalyzePage = () => {
       } else {
         form.setError("files", {
           type: "manual",
-          message: "Please upload only one file",
+            message: "Please upload only one file"
         });
       }
     },
@@ -84,7 +84,7 @@ const AnalyzePage = () => {
   const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
 
   return (
-    <main className="flex flex-col flex-grow justify-center items-center h-full">
+    <main className="flex flex-col grow justify-center items-center h-full">
       <Card className="gap-4 sm:w-96 w-90 md:w-120">
         <CardHeader>
           <CardTitle>Telegram Group Chat Analyzer</CardTitle>
