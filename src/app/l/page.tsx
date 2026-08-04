@@ -80,7 +80,8 @@ const LinkPage = () => {
       }
 
       if (data.shortUrl) {
-        router.push(`/l/${data.shortUrl}/dashboard`);
+        await navigator.clipboard.writeText(`${window.location.origin}/l/${data.shortUrl}`);
+        router.push(`/l/${data.shortUrl}/dashboard?created=true`);
       } else {
         throw new Error("No short link was returned by the server");
       }

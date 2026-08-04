@@ -1,5 +1,3 @@
-"use server";
-
 import { getLinkByShortUrl, incrementAccessCount } from "@/lib/db/linkActions";
 import { redirect } from "next/navigation";
 
@@ -10,11 +8,15 @@ const redirectPage = async ({
 }) => {
   const link = await params;
   const foundLink = await getLinkByShortUrl(link.link);
-  await incrementAccessCount(link.link);
-
+  
   if (foundLink) {
+    if (foundLink.collectStats) {
+      await incrementAccessCount(link.link);
+    }
     return redirect(foundLink.url);
   }
+  
+  
   return null;
 }
 

@@ -23,7 +23,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       );
     }
 
-    return NextResponse.json({ url: foundLink.url });
+    return NextResponse.json(foundLink);
   } catch (error) {
     console.error("Failed to redirect", error);
     return NextResponse.json(

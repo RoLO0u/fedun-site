@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
-// @ts-expect-error CSS side-effect import provided by Next.js
+// @ts-expect-error CSS module declaration is provided by Next.js at build time.
 import "./globals.css";
 import { ExternalLinkIcon, MenuIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
