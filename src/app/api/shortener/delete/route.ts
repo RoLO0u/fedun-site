@@ -14,11 +14,11 @@ export const POST = withAuth(async (request: NextRequest) => {
       );
     }
 
-    const deletedLink = await deleteLinkByShortUrl(shortUrl);
+    const deletedLink = await deleteLinkByShortUrl(shortUrl, body?.userId);
 
     if (!deletedLink) {
       return NextResponse.json(
-        { error: "Short URL not found." },
+        { error: "Short URL not found or you're not the author." },
         { status: 404 }
       );
     }
@@ -31,4 +31,4 @@ export const POST = withAuth(async (request: NextRequest) => {
       { status: 500 }
     );
   }
-}, { requireVerifiedEmail: true });
+});

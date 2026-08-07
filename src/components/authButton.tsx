@@ -4,6 +4,8 @@ import { AuthClient } from "@/lib/auth-client";
 import * as React from "react"
 import { Button, buttonVariants } from "./ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
+import { authClient } from "@/lib/auth-client";
+import { SiGoogle } from "@icons-pack/react-simple-icons";
  
 export function SignOutButton({
   authClient,
@@ -99,3 +101,37 @@ export function SignUpButton({
     </Popover>
   );
 }
+
+export function GoogleSignInButton({
+  callbackURL,
+  setErrorState,
+  className,
+  shrink,
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  callbackURL: string;
+  setErrorState?: React.Dispatch<React.SetStateAction<string | null>>;
+  className?: string;
+  shrink?: boolean;
+}) {
+  return (
+    <Button 
+      onClick={async () => {
+        try {
+          await authClient.signIn.social({
+            provider: "google",
+            callbackURL,
+          });
+        } catch (error) {
+          if (setErrorState) {
+            setErrorState(error instanceof Error ? error.message : "Google sign-in failed");
+          } else {
+            console.error("Google sign-in failed:", error);
+          }
+        }
+      }}
+      className={`flex items-center ${ shrink ? "sm:rounded-md rounded-full" : "" } gap-2 ${className || ""}`}
+    >
+      <div className={ shrink ? "hidden sm:block" : "" }>Continue with</div> <SiGoogle />
+    </Button>
+  );
+}   

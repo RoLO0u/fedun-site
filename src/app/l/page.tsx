@@ -31,6 +31,9 @@ import React from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { CircleXIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { GoogleSignInButton } from "@/components/authButton";
+import { LinksList } from "@/components/linksList";
 
 type FormValues = {
   url: string;
@@ -53,6 +56,7 @@ const LinkPage = () => {
       collectStats: true,
     },
   });
+  const session = authClient.useSession();
 
   const [errorState, setErrorState] = React.useState<string | null>(null);
 
@@ -65,7 +69,11 @@ const LinkPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url: url.toString(), collectStats: collectStats }),
+        body: JSON.stringify({
+          url: url.toString(),
+          collectStats: collectStats,
+          author: session.data?.user?.id,
+        }),
       });
 
       if (res.status === 401) {
@@ -89,8 +97,8 @@ const LinkPage = () => {
   }
 
   return (
-    <main className="flex gap-2 grow justify-center items-center h-full">
-      <Card className="gap-4 sm:w-96 w-90 md:w-120">
+    <main className="flex gap-2 flex-wrap grow justify-center content-center items-center h-full">
+      <Card className="gap-4">
         <CardHeader>
           <CardTitle>Simple URL Shortener</CardTitle>
           <CardDescription>
@@ -138,7 +146,7 @@ const LinkPage = () => {
           </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex justify-between gap-3">
           <Button type="submit" form="url">
             Generate Short Link
           </Button>
@@ -167,13 +175,32 @@ const LinkPage = () => {
           </div>
         </CardFooter>
       </Card>
-      {errorState && (
-        <Alert variant="destructive" className="max-w-96">
-          <CircleXIcon/>
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{errorState}</AlertDescription>
-        </Alert>
-      )}
+      <div className="flex flex-col gap-2 items-center">
+        {errorState && (
+          <Alert variant="destructive" className="max-w-96">
+            <CircleXIcon/>
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{errorState}</AlertDescription>
+          </Alert>
+        )}
+        { !session.isPending && !session.data?.user && (
+          <Alert variant="destructive" className="max-w-90 h-fit">
+            <CircleXIcon/>
+            <AlertTitle>Unauthorized</AlertTitle>
+            <AlertDescription>
+              You must be logged in to create short links. Please log in or sign up to continue.
+              <GoogleSignInButton callbackURL={window.location.href} className="mt-2 mb-1" shrink={false} />
+              <Button onClick={() => {
+                authClient.signIn.anonymous();
+                router.refresh();
+              }} className="mt-2">
+                Continue as Guest
+              </Button>
+            </AlertDescription> 
+          </Alert>
+        )}
+        <LinksList userId={session.data?.user?.id ?? ""} />
+      </div>
     </main>
   );
 };

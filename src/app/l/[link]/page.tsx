@@ -1,3 +1,5 @@
+"use server";
+
 import { getLinkByShortUrl, incrementAccessCount } from "@/lib/db/linkActions";
 import { redirect } from "next/navigation";
 

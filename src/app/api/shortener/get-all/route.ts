@@ -1,19 +1,11 @@
-import { getLinkStats } from "@/lib/db/linkActions";
+import { getLinksByUserId } from "@/lib/db/linkActions";
 import { withAuth } from "@/lib/authenticate";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = withAuth(async (request: NextRequest) => {
   try {
     const body = await request.json();
-    const shortUrl = body?.shortUrl;
     const userId = body?.userId;
-
-    if (typeof shortUrl !== "string" || !shortUrl.trim()) {
-      return NextResponse.json(
-        { error: "A valid short URL is required." },
-        { status: 400 }
-      );
-    }
 
     if (typeof userId !== "string" || !userId.trim()) {
       return NextResponse.json(
@@ -22,16 +14,9 @@ export const POST = withAuth(async (request: NextRequest) => {
       );
     }
 
-    const foundLink = await getLinkStats(shortUrl, userId);
+    const linksList = await getLinksByUserId(userId);
 
-    if (!foundLink) {
-      return NextResponse.json(
-        { error: "Short URL not found or you're not the author." },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(foundLink);
+    return NextResponse.json(linksList);
   } catch (error) {
     console.error("Failed to redirect", error);
     return NextResponse.json(

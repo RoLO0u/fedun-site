@@ -1,12 +1,11 @@
 import { betterAuth } from "better-auth";
-import { admin as adminPlugin} from "better-auth/plugins";
+import { admin as adminPlugin, anonymous } from "better-auth/plugins";
 import { createAuthMiddleware, APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db/drizzle";
 import { user, session, verification, account } from "@/db/schema";
 import { ac, admin } from "./permissions";
-import { th } from "date-fns/locale";
 
 export const auth = betterAuth({
   hooks: {
@@ -38,6 +37,13 @@ export const auth = betterAuth({
           account,
       }
   }),
+  socialProviders: {
+      google: {
+          clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      },
+  },
+  baseURL: process.env.BETTER_AUTH_URL,
   emailAndPassword: {
       enabled: true,
   },
@@ -49,6 +55,11 @@ export const auth = betterAuth({
           }
       }),
       nextCookies(),
+      anonymous({
+        emailDomainName: process.env.EMAIL_DOMAIN_NAME,
+        onLinkAccount: async ({ anonymousUser, newUser }) => {
+        }
+      }),
   ],
 });
 

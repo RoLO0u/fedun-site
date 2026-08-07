@@ -15,11 +15,13 @@ export const POST = withAuth(async (request: NextRequest) => {
     }
 
     const shortCode = Math.random().toString(36).slice(2, 10);
-    const createdLink = await generateLink(url, shortCode, body?.collectStats);
+    const createdLink = await generateLink(
+      url, shortCode, body?.collectStats, body?.author
+    );
 
     return NextResponse.json({
       success: true,
-      shortUrl: createdLink.shortUrl,
+      shortUrl: createdLink.newLink.shortUrl,
     });
   } catch (error) {
     console.error("Failed to generate short link", error);
@@ -28,4 +30,4 @@ export const POST = withAuth(async (request: NextRequest) => {
       { status: 500 }
     );
   }
-}, { requireVerifiedEmail: true });
+});

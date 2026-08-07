@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ExternalLinkIcon, MenuIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import HomepageProfile from "@/components/homepageProfile";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,13 +30,17 @@ export const metadata: Metadata = {
   description: "Analyze chats, create sticker packs in telegram",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>) { 
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
         <div className="p-5 flex flex-col min-h-screen 2xl:mx-32 xl:mx-20">
         <ThemeProvider
@@ -77,6 +82,7 @@ export default function RootLayout({
                 className="dark:invert hover:drop-shadow-[0_0_1rem_rgb(0,200,200)] duration-300"
               />
             </Link>
+            <HomepageProfile />
             <ModeToggle />
           </span>
         </header>

@@ -60,7 +60,7 @@ const AnalyzeResultPage = () => {
 
   if (error) {
     return (
-      <main className="text-center items-center justify-center flex flex-col gap-4 flex-grow px-4">
+      <main className="text-center items-center justify-center flex flex-col gap-4 grow px-4">
         <p className="text-sm text-red-500">{error}</p>
         <p className="text-sm text-muted-foreground">
           Check that the export is complete and has not been edited or truncated.
@@ -70,7 +70,7 @@ const AnalyzeResultPage = () => {
   }
 
   return (
-    <main className="text-center items-center justify-center flex flex-col gap-4 flex-grow">
+    <main className="text-center items-center justify-center flex flex-col gap-4 grow">
       {json ? (
         <Suspense fallback={<Loader2 className="animate-spin" />}>
           <Analyzed json={json} />
