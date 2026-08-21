@@ -21,14 +21,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Inject Environment Variables
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env.production
+
       - name: Build Next.js App
         env:
           # Inject any NEXT_PUBLIC vars needed at build time here
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: npm run build
 
@@ -37,6 +36,7 @@ jobs:
         run: |
           cp -r .next/static .next/standalone/.next/
           cp -r public .next/standalone/
+          echo "${{ secrets.ENV_FILE }}" > .next/standalone/.env
 
       - name: Deploy to EC2 via rsync
         env:
@@ -55,19 +55,11 @@ jobs:
 
       - name: Restart PM2
         uses: appleboy/ssh-action@master
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          BASE_URL: ${{ secrets.BASE_URL }}
-          EMAIL_DOMAIN_NAME: ${{ secrets.EMAIL_DOMAIN_NAME }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/my-app
-            pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
+            pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
             pm2 save
