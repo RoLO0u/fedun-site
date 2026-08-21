@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
-// @ts-expect-error CSS module declaration is provided by Next.js at build time.
 import "./globals.css";
 import { ExternalLinkIcon, MenuIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -59,6 +58,7 @@ export default async function RootLayout({
                 className="mr-1"
                 width={32}
                 height={32}
+                unoptimized
               />
               <span className="font-semibold text-xl">Fedun.Site</span>
             </span>
@@ -123,6 +123,7 @@ export default async function RootLayout({
                           alt="Home"
                           width={32}
                           height={32}
+                          unoptimized
                         />
                         Fedun.Site 
                       </DropdownMenuItem>
