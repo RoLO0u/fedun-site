@@ -19,6 +19,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { authClient } from "@/lib/auth-client";
 import { LinksList } from "@/components/linksList";
 import WorldMap, { type ISOCode } from "react-svg-worldmap";
+import { th } from "date-fns/locale";
+import { useTheme } from "next-themes";
 
 const dashboardPage = () => {
   const params = useParams();
@@ -28,6 +30,7 @@ const dashboardPage = () => {
   const ref = useRef<ReactQRCodeRef>(null);
   const [errorState, setErrorState] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   const [foundLink, setFoundLink] = useState<any>(null);
   const session = authClient.useSession();
@@ -207,12 +210,15 @@ const dashboardPage = () => {
             <CardTitle className="text-2xl font-bold mb-4">Country Access Statistics</CardTitle>
           </CardHeader>
           <CardContent className="mb-4 flex flex-col items-center">
-              {mapData ? (
+              {mapData && resolvedTheme ? (
                 <WorldMap
+                  key={resolvedTheme}
                   value-suffix="accesses"
                   size="responsive"
                   data={mapData}
-                  color="#4F46E5"
+                  backgroundColor="var(--card)"
+                  borderColor="var(--foreground)"
+                  color="var(--chart-2)"
                 />
               ) : (
                 <p>No access data available.</p>

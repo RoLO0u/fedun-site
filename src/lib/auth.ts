@@ -54,12 +54,12 @@ export const auth = betterAuth({
               admin,
           }
       }),
-      nextCookies(),
       anonymous({
         emailDomainName: process.env.EMAIL_DOMAIN_NAME,
         onLinkAccount: async ({ anonymousUser, newUser }) => {
         }
       }),
+      nextCookies(),
   ],
 });
 
