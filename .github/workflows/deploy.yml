@@ -26,9 +26,6 @@ jobs:
           echo "${{ secrets.ENV_FILE }}" > .env.production
 
       - name: Build Next.js App
-        env:
-          # Inject any NEXT_PUBLIC vars needed at build time here
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: npm run build
 
       - name: Prepare Standalone Output
