@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { CopiedSuccess } from "@/components/copiedSuccess";
-import { CheckIcon, XIcon, InfoIcon } from "lucide-react";
+import { CheckIcon, XIcon, InfoIcon, ExternalLinkIcon } from "lucide-react";
 
 export function LinksList({ userId }: { userId: string }) {
   const [links, setLinks] = useState<LinkType[]>([]);
@@ -60,7 +60,10 @@ export function LinksList({ userId }: { userId: string }) {
         <TableHeader>
           <TableRow>
             <TableHead className="sm:table-cell hidden" >Short URL</TableHead>
-            <TableHead>Original URL</TableHead>
+            <TableHead>
+              <ExternalLinkIcon className="w-4 h-4 mb-0.5 mr-1 inline-block"/>
+              Original URL
+            </TableHead>
             <TableHead>Manage</TableHead>
             <TableHead>Stats</TableHead>
           </TableRow>
@@ -88,8 +91,6 @@ export function LinksList({ userId }: { userId: string }) {
             <TableCell className="text-sm text-muted-foreground text-right">
               <Link
                 href={`/l/${link.shortUrl}/dashboard`}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="text-sm text-blue-500 hover:underline"
               >
                 View

@@ -157,8 +157,8 @@ const LinkPage = () => {
                   Statistics we store
                 </PopoverTrigger>
                 <PopoverContent className="w-96">
-                  We store the number of times a short link is accessed, and the date and time of the last access. <br />
-                  We do not store any information about the user accessing the link. The statistics are stored in a database on our server.
+                  We store the number of times a short link is accessed, the date and time of the last access and the country of the users that accessed the link. <br />
+                  We do not store any information about the user accessing the link apart from the country, given the "collect viewing statistics" is on. The statistics are stored in a database on our server.
                 </PopoverContent>
               </Popover>
             </div>

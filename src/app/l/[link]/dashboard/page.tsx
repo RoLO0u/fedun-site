@@ -201,27 +201,25 @@ const dashboardPage = () => {
             </CardContent>
           </Card>
         </div>
+        {foundLink.collectStats && (
         <Card className="gap-4">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold mb-4">Access Statistics</CardTitle>
+            <CardTitle className="text-2xl font-bold mb-4">Country Access Statistics</CardTitle>
           </CardHeader>
           <CardContent className="mb-4 flex flex-col items-center">
-            {foundLink.collectStats ? (
-              mapData ? (
+              {mapData ? (
                 <WorldMap
                   value-suffix="accesses"
                   size="responsive"
                   data={mapData}
-                  color="#4f46e5"
+                  color="#4F46E5"
                 />
               ) : (
                 <p>No access data available.</p>
-              )
-            ) : (
-              <p>Statistics collection is disabled for this link.</p>
-            )}
+              )}
           </CardContent>
         </Card>
+        )}
         <Dialog open={!!deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
