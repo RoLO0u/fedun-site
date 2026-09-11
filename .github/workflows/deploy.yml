@@ -40,6 +40,7 @@ jobs:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
+          RELEASE: /home/ubuntu/my-app-${{ github.sha }}
         run: |
           # Set up SSH key securely
           mkdir -p ~/.ssh
@@ -47,8 +48,18 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
           
-          # Sync the standalone folder contents directly to your EC2 directory
-          rsync -avz --delete .next/standalone/ $USER@$HOST:/home/ubuntu/my-app/
+          # Upload to an isolated directory so PM2 never serves a half-written build.
+          ssh $USER@$HOST "rm -rf '$RELEASE' && mkdir -p '$RELEASE'"
+          rsync -az --delete .next/standalone/ $USER@$HOST:$RELEASE/
+
+          # Keep the existing PM2 config with the new release if it lives in the app root.
+          ssh $USER@$HOST "if [ -f /home/ubuntu/my-app/ecosystem.config.js ]; then cp /home/ubuntu/my-app/ecosystem.config.js '$RELEASE/'; fi"
+
+          # Keep older static chunks available to clients holding cached HTML/RSC data.
+          ssh $USER@$HOST "if [ -d /home/ubuntu/my-app/.next/static ]; then cp -a /home/ubuntu/my-app/.next/static/. '$RELEASE/.next/static/'; fi"
+
+          # Replace the live directory after the upload has completed.
+          ssh $USER@$HOST "mv /home/ubuntu/my-app /home/ubuntu/my-app-previous-${{ github.sha }} 2>/dev/null || true && mv '$RELEASE' /home/ubuntu/my-app"
 
       - name: Link IP Database
         uses: appleboy/ssh-action@master
@@ -58,7 +69,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/my-app
-            mkdir node_modules/geoip-lite/data
+            mkdir -p node_modules/geoip-lite/data
+            rm -f node_modules/geoip-lite/data/*
             ln -s -t node_modules/geoip-lite/data /home/ubuntu/map-data/*
 
       - name: Restart PM2
@@ -71,3 +83,4 @@ jobs:
             cd /home/ubuntu/my-app
             npx --yes pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
             npx --yes pm2 save
+            rm -rf /home/ubuntu/my-app-previous-*
