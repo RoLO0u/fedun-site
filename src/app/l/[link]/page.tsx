@@ -18,8 +18,6 @@ const redirectPage = async ({
   const ip = forwardedFor?.split(',')[0]?.trim() || 'Unknown IP';
   const geo = geoip.lookup(ip);
   const country = geo?.country;
-
-  console.log(`Accessed link: ${link.link}, IP: ${ip}, Country: ${country}`);
   
   if (foundLink) {
     if (foundLink.collectStats) {
