@@ -1,0 +1,1 @@
+ALTER TABLE "link" ADD COLUMN "countries_accessed" json DEFAULT '{}'::json NOT NULL;

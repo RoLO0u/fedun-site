@@ -44,11 +44,14 @@ export const getLinksByUserId = async (userId: string) => {
   return links;
 }
 
-export const incrementAccessCount = async (shortUrl: string) => {
+export const incrementAccessCount = async (shortUrl: string, country?: string) => {
   const updatedLink = await db.update(link)
     .set({
       accessCount: sql`${link.accessCount} + 1`,
       accessedAt: new Date(),
+      countriesAccessed: country
+        ? sql`jsonb_set(${link.countriesAccessed}::jsonb, ARRAY[${country}]::text[], COALESCE((${link.countriesAccessed} ->> ${country})::int + 1, 1)::text::jsonb, true)::json`
+        : sql`${link.countriesAccessed}`,
     })
     .where(eq(link.shortUrl, shortUrl))
     .returning();

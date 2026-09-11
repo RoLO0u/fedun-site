@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { authClient } from "@/lib/auth-client";
 import { LinksList } from "@/components/linksList";
+import WorldMap, { type ISOCode } from "react-svg-worldmap";
 
 const dashboardPage = () => {
   const params = useParams();
@@ -30,6 +31,7 @@ const dashboardPage = () => {
 
   const [foundLink, setFoundLink] = useState<any>(null);
   const session = authClient.useSession();
+  const [mapData, setMapData] = useState<{ country: ISOCode; value: number }[] | null>(null);
 
   const handleDownload = () => {
     ref.current?.download({
@@ -56,6 +58,10 @@ const dashboardPage = () => {
       const data = await response.json();
       if (response.ok) {
         setFoundLink(data);
+        setMapData(Object.entries(data.countriesAccessed).map(([country, count]) => ({
+          country: country as ISOCode,
+          value: count as number,
+        })));
       } else {
         setErrorState(data.error || "Failed to fetch link data");
       }
@@ -195,6 +201,27 @@ const dashboardPage = () => {
             </CardContent>
           </Card>
         </div>
+        <Card className="gap-4">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold mb-4">Access Statistics</CardTitle>
+          </CardHeader>
+          <CardContent className="mb-4 flex flex-col items-center">
+            {foundLink.collectStats ? (
+              mapData ? (
+                <WorldMap
+                  value-suffix="accesses"
+                  size="responsive"
+                  data={mapData}
+                  color="#4f46e5"
+                />
+              ) : (
+                <p>No access data available.</p>
+              )
+            ) : (
+              <p>Statistics collection is disabled for this link.</p>
+            )}
+          </CardContent>
+        </Card>
         <Dialog open={!!deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>

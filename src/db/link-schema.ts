@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean, json } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
 export const link = pgTable("link", {
@@ -8,6 +8,7 @@ export const link = pgTable("link", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   accessedAt: timestamp("accessed_at"),
   accessCount: integer("access_count").default(0).notNull(),
+  countriesAccessed: json("countries_accessed").default({}).notNull(),
   collectStats: boolean("collect_stats").default(false).notNull(),
   author: text("author").notNull().references(() => user.id),
 });
