@@ -107,7 +107,7 @@ const dashboardPage = () => {
       <div className="flex gap-4 content-center flex-wrap justify-center h-full">
         <Card className="gap-4 px-5">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold mb-4">Dashboard for {foundLink.url}</CardTitle>
+            <CardTitle className="text-2xl font-bold mb-4 line-clamp-2">Dashboard for {foundLink.url}</CardTitle>
           </CardHeader>
           <CardContent className="mb-4">
             <div className="flex items-center">Short URL:
@@ -169,7 +169,7 @@ const dashboardPage = () => {
           }
           {created === "true" && 
           <Alert className="mb-4 py-5 px-7 max-w-fit text-lg">
-            <AlertTitle>Your redirect was added to you clipboard!</AlertTitle>
+            <AlertTitle className="line-clamp-2">Your redirect was added to the clipboard!</AlertTitle>
             <AlertDescription>
               Here's the shortened url:
               <div className="flex items-center">
@@ -191,7 +191,7 @@ const dashboardPage = () => {
                 marginSize={2}
                 background="#FFFFFF"
               />
-              <Button onClick={handleDownload}>Download PNG</Button>
+              <Button className="mt-4" onClick={handleDownload}>Download PNG</Button>
             </CardContent>
           </Card>
         </div>

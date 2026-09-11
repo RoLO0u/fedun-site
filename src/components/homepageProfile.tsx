@@ -43,7 +43,7 @@ export default function HomepageProfile() {
           height={30}
           src={session.data?.user.image || "/default-avatar.svg"}
           alt="User Avatar"
-          className="rounded-full hover:drop-shadow-[0_0_1rem_rgb(200,0,200)] duration-300 cursor-pointer"
+          className={`${session.data?.user.image ? '' : 'dark:invert'} rounded-full hover:drop-shadow-[0_0_1rem_rgb(200,0,200)] duration-300 cursor-pointer`}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
