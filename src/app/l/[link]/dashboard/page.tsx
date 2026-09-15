@@ -37,13 +37,62 @@ const dashboardPage = () => {
   const session = authClient.useSession();
   const [mapData, setMapData] = useState<{ country: ISOCode; value: number }[] | null>(null);
 
-  const handleDownload = () => {
-    ref.current?.download({
-      name: 'download-demo',
-      format: 'png',
-      size: 1000,
-    })
-  }
+  const handleDownload = async () => {
+    const isMobileFirefox = /Firefox\/\d+.*Mobile|FxiOS\/\d+/i.test(navigator.userAgent);
+    const qrSvg = ref.current?.svg;
+
+    if (!isMobileFirefox || !qrSvg) {
+      ref.current?.download({
+        name: "qr-code",
+        format: "png",
+        size: 1000,
+      });
+      return;
+    }
+
+    const downloadWindow = window.open("about:blank", "_blank");
+    const svg = qrSvg.cloneNode(true) as SVGSVGElement;
+    svg.setAttribute("width", "1000");
+    svg.setAttribute("height", "1000");
+
+    try {
+      const svgBlob = new Blob([new XMLSerializer().serializeToString(svg)], {
+        type: "image/svg+xml;charset=utf-8",
+      });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const image = new Image();
+
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1000;
+        canvas.height = 1000;
+        canvas.getContext("2d")?.drawImage(image, 0, 0, 1000, 1000);
+        URL.revokeObjectURL(svgUrl);
+
+        canvas.toBlob((pngBlob) => {
+          if (!pngBlob) {
+            downloadWindow?.close();
+            return;
+          }
+
+          const pngUrl = URL.createObjectURL(pngBlob);
+          if (downloadWindow) {
+            downloadWindow.location.href = pngUrl;
+          } else {
+            window.location.href = pngUrl;
+          }
+        }, "image/png");
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(svgUrl);
+        downloadWindow?.close();
+      };
+      image.src = svgUrl;
+    } catch {
+      downloadWindow?.close();
+      setErrorState("Failed to prepare the QR code download");
+    }
+  };
 
   useEffect(() => {
     if (!linkParam) return;
@@ -168,7 +217,7 @@ const dashboardPage = () => {
                   Your account is currently anonymous. To save your links and access statistics, please link your account with Google. All of your existing links and statistics will be preserved after linking your account.
                   <GoogleSignInButton callbackURL={window.location.href} setErrorState={setErrorState} className="mt-2" />
                 </p>
-                <TriangleAlertIcon className="ml-2 inline-block w-12 h-12 text-yellow-500 dark:text-yellow-400" />
+                <TriangleAlertIcon className="ml-2 inline-block min-w-6 min-h-6a text-yellow-500 dark:text-yellow-400" />
               </div>
               </>
             }
