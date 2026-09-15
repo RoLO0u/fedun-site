@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { GoogleSignInButton } from "@/components/authButton";
+import { GoogleSignIn, GoogleSignInButton } from "@/components/authButton";
 import { authClient } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
+import { SiGoogle } from "@icons-pack/react-simple-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  AvatarBadge
+} from "@/components/ui/avatar"
 
 export default function HomepageProfile() {
 
@@ -38,20 +44,35 @@ export default function HomepageProfile() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Image
-          width={30}
-          height={30}
-          src={session.data?.user.image || "/default-avatar.svg"}
-          alt="User Avatar"
-          className={`${session.data?.user.image ? '' : 'dark:invert'} rounded-full hover:drop-shadow-[0_0_1rem_rgb(200,0,200)] duration-300 cursor-pointer`}
-        />
+        <Avatar>
+          <AvatarImage
+            src={session.data?.user.image || "/default-avatar.svg"}
+            alt="@user-avatar"
+            className={`${session.data?.user.image ? '' : 'dark:invert'} hover:drop-shadow-[0_0_1rem_rgb(200,0,200)] duration-300 cursor-pointer`}
+          />
+          <AvatarFallback>CN</AvatarFallback>
+          { 
+            session.data?.user.isAnonymous &&
+            <AvatarBadge className="bg-amber-300 dark:bg-amber-400" />
+          }
+        </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuLabel className="text-sm text-muted-foreground">
-          Signed in as {session.data?.user.email}
+          Signed in as {session.data?.user.email.slice(0, 25)}{session.data?.user.email.length > 25 ? "..." : ""}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          { session.data?.user.isAnonymous &&
+            <DropdownMenuItem
+              onClick={() => {
+                GoogleSignIn({ callbackURL: window.location.href });
+              }}
+              className="text-sm flex items-center gap-1"
+            >
+              Link Account <SiGoogle className="size-3" />
+            </DropdownMenuItem>
+          }
           <DropdownMenuItem
             onClick={() => {
               authClient.signOut();

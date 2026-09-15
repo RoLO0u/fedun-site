@@ -10,5 +10,5 @@ export const link = pgTable("link", {
   accessCount: integer("access_count").default(0).notNull(),
   countriesAccessed: json("countries_accessed").default({}).notNull(),
   collectStats: boolean("collect_stats").default(false).notNull(),
-  author: text("author").notNull().references(() => user.id),
+  author: text("author").notNull().references(() => user.id, { onDelete: "cascade" }),
 });

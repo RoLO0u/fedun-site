@@ -66,3 +66,14 @@ export const deleteLinkByShortUrl = async (shortUrl: string, userId: string) => 
 
   return deletedLink[0];
 }
+
+export const changeAuthorOfLink = async (shortUrl: string, newAuthorId: string) => {
+  const updatedLink = await db.update(link)
+    .set({
+      author: newAuthorId,
+    })
+    .where(eq(link.shortUrl, shortUrl))
+    .returning();
+
+  return updatedLink[0];
+}

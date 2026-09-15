@@ -184,7 +184,7 @@ const LinkPage = () => {
           </Alert>
         )}
         { !session.isPending && !session.data?.user && (
-          <Alert variant="destructive" className="max-w-90 h-fit">
+          <Alert variant="destructive" className="max-w-100 h-fit">
             <CircleXIcon/>
             <AlertTitle>Unauthorized</AlertTitle>
             <AlertDescription>

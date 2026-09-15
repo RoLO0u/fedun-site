@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { ClipboardCheckIcon, ClipboardIcon, Loader2Icon, CircleXIcon } from "lucide-react";
+import { ClipboardCheckIcon, ClipboardIcon, Loader2Icon, CircleXIcon, TriangleAlertIcon } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ReactQRCode, type ReactQRCodeRef } from "@lglab/react-qr-code";
@@ -21,6 +21,7 @@ import { LinksList } from "@/components/linksList";
 import WorldMap, { type ISOCode } from "react-svg-worldmap";
 import { th } from "date-fns/locale";
 import { useTheme } from "next-themes";
+import { GoogleSignInButton } from "@/components/authButton";
 
 const dashboardPage = () => {
   const params = useParams();
@@ -159,6 +160,18 @@ const dashboardPage = () => {
                 </Popover>
               </div>
             </div>
+            { session.data?.user?.isAnonymous &&
+              <>
+              <Separator className="my-2" />
+              <div className="flex items-center max-w-lg gap-4">
+                <p>
+                  Your account is currently anonymous. To save your links and access statistics, please link your account with Google. All of your existing links and statistics will be preserved after linking your account.
+                  <GoogleSignInButton callbackURL={window.location.href} setErrorState={setErrorState} className="mt-2" />
+                </p>
+                <TriangleAlertIcon className="ml-2 inline-block w-12 h-12 text-yellow-500 dark:text-yellow-400" />
+              </div>
+              </>
+            }
             <Separator className="my-2" />
             <div className="w-full flex justify-end">
               <Button variant="destructive" onClick={() => {setDeleteDialogOpen(true)}}>

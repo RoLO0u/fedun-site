@@ -102,6 +102,27 @@ export function SignUpButton({
   );
 }
 
+export async function GoogleSignIn({
+  callbackURL,
+  setErrorState,
+}: {
+  callbackURL: string;
+  setErrorState?: React.Dispatch<React.SetStateAction<string | null>>;
+}) {
+  try {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL,
+    });
+  } catch (error) {
+    if (setErrorState) {
+      setErrorState(error instanceof Error ? error.message : "Google sign-in failed");
+    } else {
+      console.error("Google sign-in failed:", error);
+    }
+  }
+}
+
 export function GoogleSignInButton({
   callbackURL,
   setErrorState,
@@ -115,20 +136,7 @@ export function GoogleSignInButton({
 }) {
   return (
     <Button 
-      onClick={async () => {
-        try {
-          await authClient.signIn.social({
-            provider: "google",
-            callbackURL,
-          });
-        } catch (error) {
-          if (setErrorState) {
-            setErrorState(error instanceof Error ? error.message : "Google sign-in failed");
-          } else {
-            console.error("Google sign-in failed:", error);
-          }
-        }
-      }}
+      onClick={() => GoogleSignIn({ callbackURL, setErrorState })}
       className={`flex items-center ${ shrink ? "sm:rounded-md rounded-full" : "" } gap-2 ${className || ""}`}
     >
       <div className={ shrink ? "hidden sm:block" : "" }>Continue with</div> <SiGoogle />

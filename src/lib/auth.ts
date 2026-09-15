@@ -6,6 +6,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db/drizzle";
 import { user, session, verification, account } from "@/db/schema";
 import { ac, admin } from "./permissions";
+import { changeAuthorOfLink, getLinksByUserId } from "./db/linkActions";
 
 export const auth = betterAuth({
   hooks: {
@@ -57,6 +58,9 @@ export const auth = betterAuth({
       anonymous({
         emailDomainName: process.env.EMAIL_DOMAIN_NAME,
         onLinkAccount: async ({ anonymousUser, newUser }) => {
+          for (const link of await getLinksByUserId(anonymousUser.user.id)) {
+            await changeAuthorOfLink(link.shortUrl, newUser.user.id);
+          }
         }
       }),
       nextCookies(),
