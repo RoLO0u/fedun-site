@@ -139,7 +139,7 @@ const messageSchema = z.object({
     period: z.number().nullish(),
     schedule_date: z.number().nullish(),
     emoticon: z.string().nullish(),
-    text: textSchema,
+    text: textSchema.nullish(),
     cost: z.string().nullish(),
     months: z.number().nullish(),
     new_title: z.string().nullish(),
@@ -193,7 +193,7 @@ const messageSchema = z.object({
     giveaway_information: giveawayInfoSchema.nullish(),
     giveaway_results: giveawayResultsSchema.nullish(),
     paid_stars_amount: z.number().nullish(),
-    text_entities: z.array(textEntitySchema),
+    text_entities: z.array(textEntitySchema).nullish(),
     inline_bot_buttons: inlineButtonSchema.array().array().nullish(),
     reactions: z.array(reactionsSchema).nullish(),
 });
@@ -206,9 +206,10 @@ const chatSchema = z.object({
   type: chatEnums.chatType,
   messages: messagesSchema,
 });
+const nullishTextSchema = textSchema.nullish();
 
 type MessagesType = z.infer<typeof messagesSchema>;
-type TextType = z.infer<typeof textSchema>;
+type TextType = z.infer<typeof nullishTextSchema>;
 
 export { chatSchema, messagesSchema};
 export type { MessagesType, TextType };

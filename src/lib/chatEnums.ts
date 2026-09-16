@@ -72,6 +72,8 @@ const actionType = z
     "set_messages_ttl",
     "todo_completions",
     "todo_append_tasks",
+    "poll_append_answer",
+    "new_creator_pending"
   ]);
 
 const recurringType = z.enum([

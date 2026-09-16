@@ -85,6 +85,7 @@ const calculateMostUsedWords = (
       words = message.text.split(" ")
     } else {
       words = [];
+      if (message.text == null) return;
       message.text.forEach((textPiece) => {
         if (typeof textPiece === "string") {
           words.concat(textPiece.split(" "));

@@ -22,6 +22,9 @@ const countCharacters = (text: TextType): number => {
   if (typeof text === "string") {
     return text.length;
   }
+  if (text == null) {
+    return 0;
+  }
   let count = 0;
   text.forEach((textPiece) => {
     if (typeof textPiece === "string") {
