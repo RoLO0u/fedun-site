@@ -84,7 +84,6 @@ const Analyzed: React.FC<AnalyzedProps> = ({ json }) => {
                 return item;
               }}
               onValueChange={(value?: string | null) => {
-                console.log("Selected user:", value);
                 setSelectedUser(value ?? null);
                 setMessagesOverTime(calculateMessagesOverTime(json.messages, value ?? undefined));
               }}
