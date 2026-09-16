@@ -10,6 +10,15 @@ const countSchema = z.record(
 
 type CountType = z.infer<typeof countSchema>;
 
+const timeCountSchema = z.array(
+  z.object({
+    date: z.string(),
+    count: z.number(),
+  })
+);
+
+type TimeCountType = z.infer<typeof timeCountSchema>;
+
 const GenericChartSchema = z.object({
   label: z.string(),
   count: z.number(),
@@ -20,11 +29,12 @@ const ChartDataSchema = z.object({
   messagesPerUser: GenericChartSchema,
   charactersPerUser: GenericChartSchema,
   mostUsedWords: GenericChartSchema,
+  messagesOverTime: GenericChartSchema,
 })
 
 type ChartDataType = z.infer<typeof ChartDataSchema>;
 type GenericChartType = z.infer<typeof GenericChartSchema>;
 
-export { countSchema, ChartDataSchema, GenericChartSchema };
+export { countSchema, ChartDataSchema, GenericChartSchema, timeCountSchema };
 
-export type { CountType, ChartDataType, GenericChartType };
+export type { CountType, ChartDataType, GenericChartType, TimeCountType };

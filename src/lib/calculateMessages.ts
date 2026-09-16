@@ -1,10 +1,12 @@
 import { MessagesType } from "./chatSchema";
-import { GenericChartSchema, GenericChartType, CountType } from "./dataSchema";
+import { GenericChartSchema, GenericChartType, CountType, TimeCountType } from "./dataSchema";
 import { countCharacters, parseNullish } from "./utils";
+import { MILISECONDS_IN_DAY } from "./const";
 
 const rawToSchema = (
   rawCount: CountType,
-  split: number
+  split?: number,
+  sort: boolean = true
 ): GenericChartType => {
   const genericChartData = GenericChartSchema.parse([]);
   for (const key in rawCount) {
@@ -14,8 +16,25 @@ const rawToSchema = (
       label: rawCount[key].from,
     });
   }
-  genericChartData.sort((a, b) => b.count - a.count);
-  return genericChartData.slice(0, split);
+  if (sort)
+    genericChartData.sort((a, b) => b.count - a.count);
+  if (split)
+    return genericChartData.slice(0, split);
+  return genericChartData;
+}
+
+const rawCountToSchema = (
+  rawCount: TimeCountType
+): GenericChartType => {
+  const genericChartData = GenericChartSchema.parse([]);
+  rawCount.forEach((item) => {
+    genericChartData.push({
+      id: item.date,
+      count: item.count,
+      label: item.date,
+    });
+  });
+  return genericChartData;
 }
 
 const calculateMessagesPerUser = (
@@ -113,4 +132,51 @@ const calculateMostUsedWords = (
   return rawToSchema(rawCount, 30);
 }
 
-export { calculateMessagesPerUser, calculateCharactersPerUser, calculateMostUsedWords };
+const calculateMessagesOverTime = (
+  messages: MessagesType,
+  user?: string
+): GenericChartType => {
+  const rawCount: TimeCountType = [];
+
+  messages.forEach((message) => {
+    if (user && message.from !== user || message.date == null) {
+      return;
+    }
+    const date = new Date(message.date);
+    const dateString = date.toLocaleDateString();
+    if (!rawCount.at(0)) {
+      rawCount.push({
+        count: 1,
+        date: dateString,
+      });
+      return;
+    } else if (rawCount.at(-1)?.date === dateString) {
+      rawCount.at(-1)!.count += 1;
+      return;
+    }
+    const lastDate = new Date(rawCount.at(-1)!.date);
+    if (date.getTime() - lastDate.getTime() > MILISECONDS_IN_DAY) {
+      const daysDiff = Math.floor((date.getTime() - lastDate.getTime()) / MILISECONDS_IN_DAY);
+      for (let i = 1; i < daysDiff; i++) {
+        const newDate = new Date(lastDate.getTime() + (i * MILISECONDS_IN_DAY));
+        rawCount.push({
+          count: 0,
+          date: newDate.toLocaleDateString(),
+        });
+      }
+    }
+    rawCount.push({
+        count: 1,
+        date: dateString,
+      });
+  })
+
+  return rawCountToSchema(rawCount);
+}
+
+export {
+  calculateMessagesPerUser,
+  calculateCharactersPerUser,
+  calculateMostUsedWords,
+  calculateMessagesOverTime
+};

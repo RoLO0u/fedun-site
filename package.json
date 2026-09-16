@@ -10,6 +10,7 @@
     "updatedb": "cd node_modules/geoip-lite && npm run-script updatedb"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
     "@hookform/resolvers": "^5.0.1",
     "@icons-pack/react-simple-icons": "^13.5.0",
     "@lglab/react-qr-code": "^1.7.1",

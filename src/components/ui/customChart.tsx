@@ -1,13 +1,13 @@
 import * as React from "react"
 
-import { Bar, BarChart, XAxis, YAxis, LabelList, CartesianGrid } from "recharts";
+import { Bar, BarChart, Area, AreaChart, XAxis, YAxis, LabelList, CartesianGrid } from "recharts";
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "./chart";
 
 import { Card, CardHeader, CardTitle, CardContent } from "./card";
 
 import { type GenericChartType } from "@/lib/dataSchema";
 
-function CustomChart({
+function VerticalChart({
   chartConfig, chartData, title}: 
   React.ComponentProps<"div"> & 
   {
@@ -50,17 +50,6 @@ function CustomChart({
               <LabelList
                 dataKey="label"
                 position="insideLeft"
-                // formatter={(value: string) => {
-                //   let length: number;
-                //   const width = window.innerWidth;
-                //   if (width >= 768) {
-                //     length = 7;
-                //   } else {
-                //     length = 5;
-                //   }
-                //   const text = value.replaceAll(' ', '\u00A0');
-                //   return value.length > length ? `${text.slice(0, length-1)}...` : text;
-                // }}
                 style={{
                   fill: "var(--secondary-foreground)",
                 }}
@@ -73,6 +62,55 @@ function CustomChart({
   );
 }
 
+function TimeMessageChart({
+  chartConfig, chartData, title}:
+  React.ComponentProps<"div"> & 
+  {
+    chartConfig: ChartConfig,
+    chartData: GenericChartType,
+    title: string
+  }) {
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="w-full min-h-screen sm:min-h-[80vh] text-xl md:text-base md:min-h-[60vh] lg:min-h-[50vh] xl:h-auto">
+          <AreaChart accessibilityLayer data={chartData} margin={{ right: 12, left: 12 }}>
+            <CartesianGrid vertical={false} />
+            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+            <XAxis
+              dataKey="label"
+              type="category"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={10}
+              hide
+            />
+            <YAxis
+              type="number"
+              dataKey="count"
+            />
+            <Area
+              dataKey="count"
+              name="Count"
+              layout="vertical"
+              type="linear"
+              fill="var(--chart-2)"
+              radius={4}
+            >
+            </Area>
+          </AreaChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );  
+}
+
 export {
-  CustomChart
+  VerticalChart,
+  TimeMessageChart,
 };
