@@ -19,7 +19,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { authClient } from "@/lib/auth-client";
 import { LinksList } from "@/components/linksList";
 import WorldMap, { type ISOCode } from "react-svg-worldmap";
-import { th } from "date-fns/locale";
 import { useTheme } from "next-themes";
 import { GoogleSignInButton } from "@/components/authButton";
 

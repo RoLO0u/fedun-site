@@ -17,6 +17,7 @@ export const user = pgTable("user", {
   banExpires: timestamp("ban_expires"),
   isAnonymous: boolean("is_anonymous"),
   shortLinks: text("short_links").array(),
+  telegram: text("telegram"),
 });
 
 export const session = pgTable("session", {

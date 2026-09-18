@@ -38,6 +38,14 @@ export const auth = betterAuth({
           account,
       }
   }),
+  user: {
+    additionalFields: {
+      telegram: {
+        type: "string",
+        required: false,
+      },
+    },
+  },
   socialProviders: {
       google: {
           clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,

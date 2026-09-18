@@ -1,6 +1,11 @@
 import { createAuthClient } from "better-auth/react";
-import { adminClient, anonymousClient } from "better-auth/client/plugins";
+import {
+  adminClient,
+  anonymousClient,
+  inferAdditionalFields,
+} from "better-auth/client/plugins";
 import { ac, admin } from "./permissions";
+import type { auth } from "./auth";
 
 export const googleClientId =
 	process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -8,6 +13,7 @@ export const googleClientId =
 export const authClient = createAuthClient({
     baseURL: process.env.BETTER_AUTH_URL,
     plugins: [
+      inferAdditionalFields<typeof auth>(),
         adminClient({
             ac,
             roles: {
