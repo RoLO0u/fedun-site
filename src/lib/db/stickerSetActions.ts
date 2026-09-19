@@ -5,21 +5,35 @@ import { eq } from "drizzle-orm";
 import { users } from "@/db/telegram-schema";
 import { user as webUser } from "@/db/schema";
 import { StickerSet } from "@/types/telegram";
+import { NextResponse } from "next/server";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const SET_WATERMARK = process.env.TELEGRAM_SET_WATERMARK;
 
-export const getStickerSetById = async (id: string) => {
-  const res = await fetch(
-    `https://api.telegram.org/bot${BOT_TOKEN}/getStickerSet?name=${id}`,
-    { next: { revalidate: 86400 } }
-  );
+const requestFile = async (telegramUrl: string) => {
+  try {
+    const response = await fetch(telegramUrl);
 
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.description || 'Failed to fetch sticker set');
+    if (!response.ok) {
+      return new NextResponse('Failed to fetch file from Telegram', { status: response.status });
+    }
 
-  return data.result as StickerSet;
-};
+    // Get the image binary data
+    const blob = await response.blob();
+    const contentType = response.headers.get('content-type') || 'image/webp';
+
+    // Stream it back to the client with caching enabled
+    return new NextResponse(blob, {
+      headers: {
+        'Content-Type': contentType,
+        // Cache in browser & CDN for 30 days so Telegram isn't repeatedly hit
+        'Cache-Control': 'public, max-age=2592000, immutable',
+      },
+    });
+  } catch {
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
+}
 
 const requestStickerSet = async (id: string) => {
   const res = await fetch(
@@ -33,16 +47,21 @@ const requestStickerSet = async (id: string) => {
   return data.result as StickerSet;
 }
 
-const getStickerFileUrl = async (fileId: string) => {
+const getTelegramFilePath = async (fileId: string) => {
   const res = await fetch(
     `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`,
-    { next: { revalidate: 86400 } }
+    { cache: "no-store" }
   );
 
   const data = await res.json();
   if (!data.ok) throw new Error(data.description || 'Failed to fetch file path');
 
-  return `/api/sticker-set/get-file?path=${encodeURIComponent(data.result.file_path)}`;
+  return data.result.file_path as string;
+}
+
+export const getStickerFileUrl = async (fileId: string) => {
+  const filePath = await getTelegramFilePath(fileId);
+  return `/api/sticker-set/get-file?path=${encodeURIComponent(filePath)}`;
 }
 
 export const getAllStickerSets = async (userEmail: string) => {
@@ -75,6 +94,10 @@ export const getAllStickerSets = async (userEmail: string) => {
     thumbnails: await thumbnails,
   };
 }
+
+export const getFile = async (filePath: string) => {
+  return requestFile(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
+};
 
 export const unlinkUser = async (userEmail: string) => {
   await telegram_db.update(users)

@@ -13,20 +13,16 @@ import { SiTelegram } from "@icons-pack/react-simple-icons";
 import Link from "next/link";
 import { GoogleSignInButton } from "@/components/authButton";
 import { UnlinkTelegramButton } from "@/components/unlinkTelegramButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+import { StickerSetDialog, RenderSticker } from "@/components/stickerSet";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const StickerSetsPage = () => {
   const [stickerSets, setStickerSets] = useState<StickerSet[]>([]);
   const [firstStickers, setFirstStickers] = useState<string[]>([]);
   const [thumbnails, setThumbnails] = useState<(string | null)[]>([]);
   const [errorState, setErrorState] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState<string | null>(null);
   const {
     data: session,
     isPending,
@@ -116,7 +112,7 @@ const StickerSetsPage = () => {
       <h1 className="text-4xl font-bold mt-4">Your Sticker Sets</h1>
       <div className="flex flex-wrap justify-center gap-4 mt-4">
         {stickerSets.map((stickerSet, index) => (
-          <Card key={stickerSet.name}>
+          <Card key={stickerSet.name} className="gap-1">
             <CardHeader className="flex flex-row content-center justify-center text-lg font-semibold">
               {stickerSet.title}
               { thumbnails[index] &&
@@ -127,35 +123,32 @@ const StickerSetsPage = () => {
                   unoptimized
                   alt={`${stickerSet.title} thumbnail`}
                 />
-            }
-          </CardHeader>
-          <CardContent>
-            {stickerSet.stickers[0]?.is_video ? (
-              <video
-                width={100}
-                height={100}
-                src={firstStickers[index]}
-                autoPlay
-                loop
-                muted
-                playsInline
-                aria-label={`${stickerSet.title} first sticker`}
-                className="w-50 aspect-square object-contain mb-2"
+              }
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center gap-2">
+              <RenderSticker
+                sticker={stickerSet.stickers[0]}
+                index={1}
+                stickerSetTitle={stickerSet.title}
+                stickerUrl={firstStickers[index]}
+                className="w-50 aspect-square object-contain"
               />
-            ) : (
-              <Image
-                width={100}
-                height={100}
-                src={firstStickers[index]}
-                unoptimized
-                alt={`${stickerSet.title} Thumbnail`}
-                className="w-50 aspect-square object-contain mb-2"
-              />
-              )}
-              <p>Stickers: {stickerSet.stickers.length}</p>
+              <Dialog
+                open={dialogOpen === stickerSet.name}
+                onOpenChange={(open) => setDialogOpen(open ? stickerSet.name : null)}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline">View {stickerSet.stickers.length} Stickers</Button>
+                </DialogTrigger>
+                <StickerSetDialog
+                  stickerSet={stickerSet}
+                  thumbnail={thumbnails[index]}
+                  open={dialogOpen === stickerSet.name}
+                />
+              </Dialog>
             </CardContent>
           </Card>
-        ))}
+          ))}
       </div>
       <div className="mt-4">
         <UnlinkTelegramButton />
