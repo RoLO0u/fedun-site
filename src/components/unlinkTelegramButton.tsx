@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 export const UnlinkTelegramButton = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,15 +35,35 @@ export const UnlinkTelegramButton = () => {
   };
 
   return (
-    <Button onClick={handleUnlink} variant="destructive" disabled={isLoading}>
-      {isLoading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Unlinking...
-        </>
-      ) : (
-        "Unlink Telegram"
-      )}
-    </Button>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="destructive" disabled={isLoading}>
+          Unlink Telegram
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Unlink Telegram Account</DialogTitle>
+        </DialogHeader>
+        <p>Are you sure you want to unlink your Telegram account?</p>
+        <div className="mt-4 flex justify-end gap-2">
+          <DialogClose asChild>
+            <Button variant="outline" onClick={() => setIsLoading(false)} disabled={isLoading}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button variant="destructive" onClick={handleUnlink} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Unlinking...
+              </>
+            ) : (
+              "Unlink"
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -138,7 +138,7 @@ const StickerSetsPage = () => {
                 onOpenChange={(open) => setDialogOpen(open ? stickerSet.name : null)}
               >
                 <DialogTrigger asChild>
-                  <Button variant="outline">View {stickerSet.stickers.length} Stickers</Button>
+                  <Button variant="outline">Manage {stickerSet.stickers.length} Stickers</Button>
                 </DialogTrigger>
                 <StickerSetDialog
                   stickerSet={stickerSet}

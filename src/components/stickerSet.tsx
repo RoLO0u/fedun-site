@@ -7,36 +7,66 @@ import {
   DialogTitle,
   DialogClose
 } from "./ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "./ui/button";
 import { StickerSet, Sticker } from "@/types/telegram";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { Loader2Icon } from "lucide-react";
 
+const MAX_VIDEO_RETRIES = 3;
+
 const VideoSticker = ({
   sticker,
   index,
   stickerSetTitle,
   stickerUrl,
+  thumbnailUrl,
   className,
 }: {
   sticker: Sticker,
   index: number,
   stickerSetTitle: string,
   stickerUrl: string,
+  thumbnailUrl?: string,
   className: string,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sourceUrl, setSourceUrl] = useState(stickerUrl);
+  const [fallbackThumbnailUrl, setFallbackThumbnailUrl] = useState(thumbnailUrl);
   const [retryCount, setRetryCount] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
 
   useEffect(() => {
     setSourceUrl(stickerUrl);
+    setFallbackThumbnailUrl(thumbnailUrl);
     setRetryCount(0);
     setFailed(false);
-  }, [stickerUrl]);
+    setLoading(true);
+    setThumbnailFailed(false);
+  }, [stickerUrl, thumbnailUrl]);
+
+  useEffect(() => {
+    videoRef.current?.load();
+  }, [sourceUrl]);
+
+  useEffect(() => {
+    if (thumbnailUrl || !sticker.thumbnail?.file_id) return;
+
+    let cancelled = false;
+    fetch(`/api/sticker-set/get-sticker?file-id=${sticker.thumbnail.file_id}`)
+      .then(async (response) => {
+        if (response.ok && !cancelled) {
+          setFallbackThumbnailUrl(await response.text());
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sticker.thumbnail?.file_id, thumbnailUrl]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -54,27 +84,30 @@ const VideoSticker = ({
     return () => observer.disconnect();
   }, []);
 
-  const handleError = async () => {
-    if (retryCount > 0) {
-      setFailed(true);
+  const handleError = () => {
+    setLoading(true);
+    if (retryCount < MAX_VIDEO_RETRIES) {
+      setRetryCount((count) => count + 1);
       return;
     }
 
-    try {
-      const response = await fetch(
-        `/api/sticker-set/get-sticker?file-id=${sticker.file_id}`,
-        { cache: "no-store" }
-      );
-      if (!response.ok) throw new Error("Unable to refresh sticker URL");
-
-      setSourceUrl(await response.text());
-      setRetryCount(1);
-    } catch {
-      setFailed(true);
-    }
+    setFailed(true);
   };
 
   if (failed) {
+    if (fallbackThumbnailUrl && !thumbnailFailed) {
+      return (
+        <Image
+          width={50}
+          height={50}
+          src={fallbackThumbnailUrl}
+          unoptimized
+          alt={`${stickerSetTitle} sticker ${index}`}
+          className={className}
+          onError={() => setThumbnailFailed(true)}
+        />
+      );
+    }
     return (
       <div className={`${className} flex items-center justify-center text-center text-xs text-muted-foreground`}>
         Sticker unavailable
@@ -83,19 +116,29 @@ const VideoSticker = ({
   }
 
   return (
-    <video
-      ref={videoRef}
-      width={50}
-      height={50}
-      src={`${sourceUrl}${sourceUrl.includes("?") ? "&" : "?"}attempt=${retryCount}`}
-      loop
-      muted
-      playsInline
-      preload="metadata"
-      onError={handleError}
-      aria-label={`${stickerSetTitle} sticker ${index}`}
-      className={className}
-    />
+    <div className={`${className} relative`} aria-busy={loading}>
+      <video
+        ref={videoRef}
+        width={50}
+        height={50}
+        src={`${sourceUrl}${sourceUrl.includes("?") ? "&" : "?"}attempt=${retryCount}`}
+        loop
+        muted
+        playsInline
+        preload="metadata"
+        onError={handleError}
+        onLoadStart={() => setLoading(true)}
+        onCanPlay={() => setLoading(false)}
+        aria-label={`${stickerSetTitle} sticker ${index}`}
+        className="h-full w-full object-contain"
+      />
+      {loading && (
+        <Loader2Icon
+          className="absolute inset-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 animate-spin"
+          aria-label={`Loading sticker ${index}`}
+        />
+      )}
+    </div>
   );
 };
 
@@ -104,12 +147,14 @@ export const RenderSticker = ({
   index,
   stickerSetTitle,
   stickerUrl,
+  thumbnailUrl,
   className,
 }: {
   sticker: Sticker,
   index: number,
   stickerSetTitle: string,
   stickerUrl: string,
+  thumbnailUrl?: string,
   className: string,
 }) => {
   if (sticker.is_video) {
@@ -118,6 +163,7 @@ export const RenderSticker = ({
       index={index}
       stickerSetTitle={stickerSetTitle}
       stickerUrl={stickerUrl}
+      thumbnailUrl={thumbnailUrl}
       className={className}
     />;
   }
@@ -165,7 +211,7 @@ export const StickerSetDialog = ({
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle className="flex flex-row content-center justify-center text-lg font-semibold">
+        <DialogTitle className="flex flex-row content-center justify-center text-lg gap-1 font-semibold">
           {stickerSet.title}
           { thumbnail &&
             <Image
@@ -190,7 +236,9 @@ export const StickerSetDialog = ({
                 className="w-26 aspect-square object-contain"
               />
               :
-              <Loader2Icon className="animate-spin w-25 h-25" aria-label={`Loading sticker ${index + 1}`} />
+              <div className="w-26 h-26 flex justify-center items-center">
+                <Loader2Icon className="animate-spin w-8 h-8" aria-label={`Loading sticker ${index + 1}`} />
+              </div>
             }
           </div>
         ))}
