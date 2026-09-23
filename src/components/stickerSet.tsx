@@ -12,8 +12,93 @@ import { StickerSet, Sticker } from "@/types/telegram";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { Loader2Icon } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 const MAX_VIDEO_RETRIES = 3;
+
+const AnimatedSticker = ({
+  sticker,
+  index,
+  stickerSetTitle,
+  stickerUrl,
+  thumbnailUrl,
+  className,
+}: {
+  sticker: Sticker,
+  index: number,
+  stickerSetTitle: string,
+  stickerUrl: string,
+  thumbnailUrl?: string,
+  className: string,
+}) => {
+  const [fallbackThumbnailUrl, setFallbackThumbnailUrl] = useState(thumbnailUrl);
+  const [failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const [lottieJson, setLottieJson] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAndDecompressTgs = async () => {
+      try {
+        const response = await fetch(stickerUrl);
+        if (!response.body) return;
+
+        // .tgs files are just GZipped Lottie JSON.
+        // We unpack it on the fly using the browser's native DecompressionStream
+        const decompressionStream = new DecompressionStream('gzip');
+        const decompressed = response.body.pipeThrough(decompressionStream);
+        
+        // Convert the unpacked stream into a JSON string
+        const jsonText = await new Response(decompressed).text();
+        setLottieJson(jsonText);
+      } catch (error) {
+        console.error("Failed to load or unpack TGS file:", error);
+      }
+    }
+
+    loadAndDecompressTgs();
+  }, [stickerUrl]);
+
+  if (failed || !lottieJson) {
+    if (fallbackThumbnailUrl && !thumbnailFailed) {
+      return (
+        <Image
+          width={50}
+          height={50}
+          src={fallbackThumbnailUrl}
+          unoptimized
+          alt={`${stickerSetTitle} sticker ${index}`}
+          className={className}
+          onError={() => setThumbnailFailed(true)}
+        />
+      );
+    }
+    return (
+      <div className={`${className} flex items-center justify-center text-center text-xs text-muted-foreground`}>
+        Sticker unavailable
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${className} relative`} aria-busy={loading}>
+      <DotLottieReact
+        data={lottieJson}
+        autoplay
+        loop
+        style={{ width: '100%', height: '100%' }}
+        onLoad={() => setLoading(false)}
+        onError={() => setFailed(true)}
+      />
+      {!lottieJson && (
+        <Loader2Icon
+          className="absolute inset-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 animate-spin"
+          aria-label={`Loading sticker ${index}`}
+        />
+      )}
+    </div>
+  );
+};
 
 const VideoSticker = ({
   sticker,
@@ -159,6 +244,16 @@ export const RenderSticker = ({
 }) => {
   if (sticker.is_video) {
     return <VideoSticker
+      sticker={sticker}
+      index={index}
+      stickerSetTitle={stickerSetTitle}
+      stickerUrl={stickerUrl}
+      thumbnailUrl={thumbnailUrl}
+      className={className}
+    />;
+  }
+  if (sticker.is_animated) {
+    return <AnimatedSticker
       sticker={sticker}
       index={index}
       stickerSetTitle={stickerSetTitle}
