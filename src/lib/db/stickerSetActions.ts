@@ -38,7 +38,7 @@ const requestFile = async (telegramUrl: string) => {
 const requestStickerSet = async (id: string) => {
   const res = await fetch(
     `https://api.telegram.org/bot${BOT_TOKEN}/getStickerSet?name=${id}${SET_WATERMARK}`,
-    { next: { revalidate: 86400 } }
+    { cache: "no-store" }
   );
 
   const data = await res.json();
@@ -102,7 +102,7 @@ export const getFile = async (filePath: string) => {
 export const setStickerSetPosition = async (stickerId: string, position: number) => {
   const res = await fetch(
     `https://api.telegram.org/bot${BOT_TOKEN}/setStickerPositionInSet?sticker=${stickerId}&position=${position}`,
-    { next: { revalidate: 86400 } }
+    { cache: "no-store" }
   );
 
   const data = await res.json();
