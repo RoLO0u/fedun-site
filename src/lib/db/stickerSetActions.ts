@@ -99,6 +99,18 @@ export const getFile = async (filePath: string) => {
   return requestFile(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
 };
 
+export const setStickerSetPosition = async (stickerId: string, position: number) => {
+  const res = await fetch(
+    `https://api.telegram.org/bot${BOT_TOKEN}/setStickerPositionInSet?sticker=${stickerId}&position=${position}`,
+    { next: { revalidate: 86400 } }
+  );
+
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.description || 'Failed to set sticker position');
+  
+  return data.result as boolean;
+};
+
 export const unlinkUser = async (userEmail: string) => {
   await telegram_db.update(users)
     .set({ email: null })

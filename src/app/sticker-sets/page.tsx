@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import type { StickerSet } from "@/types/telegram";
+import type { Sticker, StickerSet } from "@/types/telegram";
 import { authClient } from "@/lib/auth-client";
 import { CopyText } from "@/components/copyText";
 
@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 
 const StickerSetsPage = () => {
   const [stickerSets, setStickerSets] = useState<StickerSet[]>([]);
+  const [stickersInSets, setStickersInSets] = useState<string[][]>([]);
   const [firstStickers, setFirstStickers] = useState<string[]>([]);
   const [thumbnails, setThumbnails] = useState<(string | null)[]>([]);
   const [errorState, setErrorState] = useState<string | null>(null);
@@ -41,6 +42,10 @@ const StickerSetsPage = () => {
         setStickerSets(data.stickerSets);
         setFirstStickers(data.firstStickers);
         setThumbnails(data.thumbnails);
+        setStickersInSets(
+          data.stickerSets.map((stickerSet: StickerSet) => 
+          stickerSet.stickers.map((sticker: Sticker) => sticker.file_id
+        )));
       } catch (error) {
         setErrorState(`Error fetching sticker sets: ${error}`);
       }

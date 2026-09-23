@@ -8,30 +8,49 @@ import {
   DialogClose
 } from "./ui/dialog";
 import { Button } from "./ui/button";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "./ui/popover";
 import { StickerSet, Sticker } from "@/types/telegram";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, MoveIcon } from "lucide-react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const MAX_VIDEO_RETRIES = 3;
 
 const AnimatedSticker = ({
-  sticker,
   index,
   stickerSetTitle,
   stickerUrl,
   thumbnailUrl,
   className,
 }: {
-  sticker: Sticker,
   index: number,
   stickerSetTitle: string,
   stickerUrl: string,
   thumbnailUrl?: string,
   className: string,
 }) => {
-  const [fallbackThumbnailUrl, setFallbackThumbnailUrl] = useState(thumbnailUrl);
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
@@ -60,12 +79,12 @@ const AnimatedSticker = ({
   }, [stickerUrl]);
 
   if (failed || !lottieJson) {
-    if (fallbackThumbnailUrl && !thumbnailFailed) {
+    if (thumbnailUrl && !thumbnailFailed) {
       return (
         <Image
           width={50}
           height={50}
-          src={fallbackThumbnailUrl}
+          src={thumbnailUrl}
           unoptimized
           alt={`${stickerSetTitle} sticker ${index}`}
           className={className}
@@ -254,7 +273,6 @@ export const RenderSticker = ({
   }
   if (sticker.is_animated) {
     return <AnimatedSticker
-      sticker={sticker}
       index={index}
       stickerSetTitle={stickerSetTitle}
       stickerUrl={stickerUrl}
@@ -274,6 +292,49 @@ export const RenderSticker = ({
   )
 };
 
+const SortableSticker = ({
+  id,
+  sticker,
+  index,
+  stickerSetTitle,
+  stickerUrl,
+}: {
+  id: string,
+  sticker: Sticker,
+  index: number,
+  stickerSetTitle: string,
+  stickerUrl: string,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      {...attributes}
+      {...listeners}
+      className="touch-none cursor-grab active:cursor-grabbing"
+    >
+      <RenderSticker
+        sticker={sticker}
+        index={index}
+        stickerSetTitle={stickerSetTitle}
+        stickerUrl={stickerUrl}
+        className="pointer-events-none aspect-square w-26 object-contain"
+      />
+    </div>
+  );
+};
+
 export const StickerSetDialog = ({
   stickerSet,
   thumbnail,
@@ -283,30 +344,66 @@ export const StickerSetDialog = ({
   thumbnail: string | null,
   open: boolean,
 }) => {
-  const [stickerUrls, setStickerUrls] = useState<string[]>([]);
+  const [stickerItems, setStickerItems] = useState<Array<{ sticker: Sticker, url: string }>>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const updateStickerPositions = async (oldPosition: number, newPosition: number) => {
+    const sticker = stickerItems[oldPosition].sticker;
+    try {
+      const response = await fetch(`/api/sticker-set/set-position?sticker-id=${sticker.file_id}&position=${newPosition}`);
+      if (!response.ok) {
+        console.error(`Failed to set position for sticker ${sticker.file_id}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error(`Error setting position for sticker ${sticker.file_id}:`, error);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over?.id) {
+      await updateStickerPositions(
+        stickerItems.findIndex((item) => item.sticker.file_id === active.id),
+        stickerItems.findIndex((item) => item.sticker.file_id === over.id)
+      );
+      setStickerItems((items) => {
+        const oldIndex = items.findIndex((item) => item.sticker.file_id === active.id);
+        const newIndex = items.findIndex((item) => item.sticker.file_id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
 
     const fetchStickerUrls = async () => {
-      const urls = await Promise.all(
+      const items = await Promise.all(
         stickerSet.stickers.map(async (sticker) => {
           const response = await fetch(`/api/sticker-set/get-sticker?file-id=${sticker.file_id}`);
           if (!response.ok) {
             console.error(`Failed to fetch sticker file: ${response.statusText}`);
-            return '';
+            return { sticker, url: '' };
           }
-          return await response.text();
+          return { sticker, url: await response.text() };
         })
       );
-      setStickerUrls(urls);
+      setStickerItems(items);
     };
     fetchStickerUrls();
   }, [open, stickerSet.stickers]);
+
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle className="flex flex-row content-center justify-center text-lg gap-1 font-semibold">
+        <DialogTitle className="flex flex-row content-center justify-center items-center text-lg gap-1 font-semibold">
           {stickerSet.title}
           { thumbnail &&
             <Image
@@ -319,26 +416,36 @@ export const StickerSetDialog = ({
           }
         </DialogTitle>
       </DialogHeader>
-      <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
-        {stickerSet.stickers.map((sticker, index) => (
-          <div key={index}>
-            {stickerUrls[index] ?
-              <RenderSticker
-                sticker={sticker}
-                index={index + 1}
-                stickerSetTitle={stickerSet.title}
-                stickerUrl={stickerUrls[index]}
-                className="w-26 aspect-square object-contain"
-              />
-              :
-              <div className="w-26 h-26 flex justify-center items-center">
-                <Loader2Icon className="animate-spin w-8 h-8" aria-label={`Loading sticker ${index + 1}`} />
-              </div>
-            }
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={stickerItems.map(({ sticker }) => sticker.file_id)} strategy={rectSortingStrategy}>
+          <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
+            {stickerItems.map(({ sticker, url }, index) => (
+              url ?
+                <SortableSticker
+                  key={sticker.file_id}
+                  id={sticker.file_id}
+                  sticker={sticker}
+                  index={index + 1}
+                  stickerSetTitle={stickerSet.title}
+                  stickerUrl={url}
+                />
+                :
+                <div key={sticker.file_id} className="flex h-26 w-26 items-center justify-center">
+                  <Loader2Icon className="h-8 w-8 animate-spin" aria-label={`Loading sticker ${index + 1}`} />
+                </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <DialogFooter>
+        </SortableContext>
+      </DndContext>
+      <DialogFooter className="flex flex-row justify-center items-center gap-2">
+        <Popover>
+          <PopoverTrigger className="hover:cursor-help">
+            <MoveIcon className="h-5 w-5" aria-label="Drag to reorder stickers" />
+          </PopoverTrigger>
+          <PopoverContent>
+            Drag and drop the stickers to reorder them. The new order will be saved automatically.
+          </PopoverContent>
+        </Popover>
         <DialogClose asChild>
           <Button>Close</Button>
         </DialogClose>
