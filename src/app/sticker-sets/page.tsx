@@ -115,6 +115,7 @@ const StickerSetsPage = () => {
   return (
     <main className="flex flex-col gap-2 flex-wrap grow justify-center content-center items-center h-full">
       <h1 className="text-4xl font-bold mt-4">Your Sticker Sets</h1>
+      <div className="text-lg text-center">Move your stickers to change the order of them in the set<br/>The changed order is saved automatically</div>
       <div className="flex flex-wrap justify-center gap-4 mt-4">
         {stickerSets.map((stickerSet, index) => (
           <Card key={stickerSet.name} className="gap-1">

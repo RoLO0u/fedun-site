@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "./ui/popover";
+import { Skeleton } from "./ui/skeleton";
 import { StickerSet, Sticker } from "@/types/telegram";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
@@ -419,7 +420,7 @@ export const StickerSetDialog = ({
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={stickerItems.map(({ sticker }) => sticker.file_id)} strategy={rectSortingStrategy}>
           <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
-            {stickerItems.map(({ sticker, url }, index) => (
+            {stickerItems.length ? stickerItems.map(({ sticker, url }, index) => (
               url ?
                 <SortableSticker
                   key={sticker.file_id}
@@ -433,7 +434,11 @@ export const StickerSetDialog = ({
                 <div key={sticker.file_id} className="flex h-26 w-26 items-center justify-center">
                   <Loader2Icon className="h-8 w-8 animate-spin" aria-label={`Loading sticker ${index + 1}`} />
                 </div>
-            ))}
+            )) :
+              Array.from({ length: 16 }).map((_, i) => (
+                <Skeleton key={i} className="h-26 w-26" />
+              ))
+            }
           </div>
         </SortableContext>
       </DndContext>
