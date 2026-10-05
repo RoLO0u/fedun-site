@@ -36,6 +36,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Link from "next/link";
 
 const MAX_VIDEO_RETRIES = 3;
 
@@ -336,17 +337,15 @@ const SortableSticker = ({
   );
 };
 
-export const StickerSetDialog = ({
+export const StickerSetSortable = ({
   stickerSet,
-  thumbnail,
-  open,
+  stickerItems,
+  setStickerItems,
 }: {
   stickerSet: StickerSet,
-  thumbnail: string | null,
-  open: boolean,
+  stickerItems: Array<{ sticker: Sticker, url: string }>,
+  setStickerItems: React.Dispatch<React.SetStateAction<Array<{ sticker: Sticker, url: string }>>>,
 }) => {
-  const [stickerItems, setStickerItems] = useState<Array<{ sticker: Sticker, url: string }>>([]);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -381,6 +380,47 @@ export const StickerSetDialog = ({
       });
     }
   };
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={stickerItems.map(({ sticker }) => sticker.file_id)} strategy={rectSortingStrategy}>
+        <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
+          {stickerItems.length ? stickerItems.map(({ sticker, url }, index) => (
+            url ?
+              <SortableSticker
+                key={sticker.file_id}
+                id={sticker.file_id}
+                sticker={sticker}
+                index={index + 1}
+                stickerSetTitle={stickerSet.title}
+                stickerUrl={url}
+              />
+              :
+              <div key={sticker.file_id} className="flex h-26 w-26 items-center justify-center">
+                <Loader2Icon className="h-8 w-8 animate-spin" aria-label={`Loading sticker ${index + 1}`} />
+              </div>
+          )) :
+            Array.from({ length: 16 }).map((_, i) => (
+              <Skeleton key={i} className="h-26 w-26" />
+            ))
+          }
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+};
+  
+
+export const StickerSetDialog = ({
+  stickerSet,
+  thumbnail,
+  open,
+}: {
+  stickerSet: StickerSet,
+  thumbnail: string | null,
+  open: boolean,
+}) => {
+  const [stickerItems, setStickerItems] = useState<Array<{ sticker: Sticker, url: string }>>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -417,40 +457,24 @@ export const StickerSetDialog = ({
           }
         </DialogTitle>
       </DialogHeader>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={stickerItems.map(({ sticker }) => sticker.file_id)} strategy={rectSortingStrategy}>
-          <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
-            {stickerItems.length ? stickerItems.map(({ sticker, url }, index) => (
-              url ?
-                <SortableSticker
-                  key={sticker.file_id}
-                  id={sticker.file_id}
-                  sticker={sticker}
-                  index={index + 1}
-                  stickerSetTitle={stickerSet.title}
-                  stickerUrl={url}
-                />
-                :
-                <div key={sticker.file_id} className="flex h-26 w-26 items-center justify-center">
-                  <Loader2Icon className="h-8 w-8 animate-spin" aria-label={`Loading sticker ${index + 1}`} />
-                </div>
-            )) :
-              Array.from({ length: 16 }).map((_, i) => (
-                <Skeleton key={i} className="h-26 w-26" />
-              ))
-            }
-          </div>
-        </SortableContext>
-      </DndContext>
+      <StickerSetSortable
+        stickerSet={stickerSet}
+        stickerItems={stickerItems}
+        setStickerItems={setStickerItems}
+      />
       <DialogFooter className="flex flex-row justify-center items-center gap-2">
         <Popover>
-          <PopoverTrigger className="hover:cursor-help">
-            <MoveIcon className="h-5 w-5" aria-label="Drag to reorder stickers" />
+          <PopoverTrigger className="flex flex-row gap-1 items-center underline decoration-dashed decoration-1">
+            Reorder
+            <MoveIcon className="h-4 w-4" aria-label="Drag to reorder stickers" />
           </PopoverTrigger>
           <PopoverContent>
             Drag and drop the stickers to reorder them. The new order will be saved automatically.
           </PopoverContent>
         </Popover>
+        <Button asChild variant="outline">
+          <Link href={`/sticker-sets/${stickerSet.name}`}>Edit</Link>
+        </Button>
         <DialogClose asChild>
           <Button>Close</Button>
         </DialogClose>

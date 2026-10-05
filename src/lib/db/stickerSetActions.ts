@@ -35,9 +35,9 @@ const requestFile = async (telegramUrl: string) => {
   }
 }
 
-const requestStickerSet = async (id: string) => {
+const requestStickerSet = async (id: string, watermarked: boolean = false) => {
   const res = await fetch(
-    `https://api.telegram.org/bot${BOT_TOKEN}/getStickerSet?name=${id}${SET_WATERMARK}`,
+    `https://api.telegram.org/bot${BOT_TOKEN}/getStickerSet?name=${id}${watermarked ? "" : SET_WATERMARK}`,
     { cache: "no-store" }
   );
 
@@ -109,6 +109,13 @@ export const setStickerSetPosition = async (stickerId: string, position: number)
   if (!data.ok) throw new Error(data.description || 'Failed to set sticker position');
   
   return data.result as boolean;
+};
+
+export const getStickerSet = async (setName: string) => {
+  const stickerSet = requestStickerSet(setName, true);
+  return new NextResponse(JSON.stringify(await stickerSet), {
+    headers: { 'Content-Type': 'application/json' },
+  });
 };
 
 export const unlinkUser = async (userEmail: string) => {

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import type { Sticker, StickerSet } from "@/types/telegram";
+import type { StickerSet } from "@/types/telegram";
 import { authClient } from "@/lib/auth-client";
 import { CopyText } from "@/components/copyText";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 import { SiTelegram } from "@icons-pack/react-simple-icons";
 import Link from "next/link";
@@ -19,7 +20,6 @@ import { Button } from "@/components/ui/button";
 
 const StickerSetsPage = () => {
   const [stickerSets, setStickerSets] = useState<StickerSet[]>([]);
-  const [stickersInSets, setStickersInSets] = useState<string[][]>([]);
   const [firstStickers, setFirstStickers] = useState<string[]>([]);
   const [thumbnails, setThumbnails] = useState<(string | null)[]>([]);
   const [errorState, setErrorState] = useState<string | null>(null);
@@ -42,10 +42,6 @@ const StickerSetsPage = () => {
         setStickerSets(data.stickerSets);
         setFirstStickers(data.firstStickers);
         setThumbnails(data.thumbnails);
-        setStickersInSets(
-          data.stickerSets.map((stickerSet: StickerSet) => 
-          stickerSet.stickers.map((sticker: Sticker) => sticker.file_id
-        )));
       } catch (error) {
         setErrorState(`Error fetching sticker sets: ${error}`);
       }
@@ -117,7 +113,7 @@ const StickerSetsPage = () => {
       <h1 className="text-4xl font-bold mt-4">Your Sticker Sets</h1>
       <div className="text-lg text-center">Move your stickers to change the order of them in the set<br/>The changed order is saved automatically</div>
       <div className="flex flex-wrap justify-center gap-4 mt-4">
-        {stickerSets.map((stickerSet, index) => (
+        {stickerSets.length ? stickerSets.map((stickerSet, index) => (
           <Card key={stickerSet.name} className="gap-1">
             <CardHeader className="flex flex-row content-center justify-center text-lg font-semibold">
               {stickerSet.title}
@@ -154,7 +150,12 @@ const StickerSetsPage = () => {
               </Dialog>
             </CardContent>
           </Card>
-          ))}
+          )) : (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-81.5 w-62.5" />
+            ))
+        )
+        }
       </div>
       <div className="mt-4">
         <UnlinkTelegramButton />
