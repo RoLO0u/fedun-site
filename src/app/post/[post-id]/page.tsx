@@ -81,14 +81,14 @@ const postPage = async ({
   const dateTime = {
     published: {
       year: post.publishedAt?.getFullYear(),
-      month: post.publishedAt?.getMonth(),
+      month: post.publishedAt?.getMonth()! + 1,
       day: post.publishedAt?.getDate(),
       hours: post.publishedAt?.getHours(),
       minutes: post.publishedAt?.getMinutes(),
     },
     updated: {
       year: post.updatedAt?.getFullYear(),
-      month: post.updatedAt?.getMonth(),
+      month: post.updatedAt?.getMonth()! + 1,
       day: post.updatedAt?.getDate(),
       hours: post.updatedAt?.getHours(),
       minutes: post.updatedAt?.getMinutes(),
