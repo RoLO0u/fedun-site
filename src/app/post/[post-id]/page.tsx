@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getPostById } from "@/lib/db/postActions";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { AlertCircleIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  BookOpenIcon
+} from "lucide-react";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import GithubSlugger from 'github-slugger';
@@ -22,8 +25,13 @@ function getHeadings(source: string) {
   });
 
   return headingLines.map((raw) => {
-    const text = raw.replace(/^##?\s/, '');
     const level = raw.startsWith('##') ? 3 : 2;
+    const text = raw
+      .replace(/^##?\s/, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/<[^>]+>/g, '')
+      .replace(/[`*]/g, '')
+      .trim();
     
     return { 
       text, 
@@ -39,12 +47,13 @@ const mdxComponents = {
   AlertDescription,
   Button,
   Popover,
-  PopoverTrigger: (props: any) => <PopoverTrigger className="w-fit flex items-center gap-1 text-destructive underline decoration-dashed" {...props} />,
+  PopoverTrigger: (props: any) => <PopoverTrigger className="w-fit flex items-center gap-1 underline decoration-dashed" {...props} />,
   PopoverContent: (props: any) => <PopoverContent className="w-screen md:w-2xl" {...props} />,
-  AlertCircleIcon,
-  h1: (props: any) => <h1 className="text-3xl font-bold mt-3 mb-3" {...props} />,
-  h2: (props: any) => <h2 className="text-xl font-semibold mt-2 mb-1" {...props} />,
-  p: (props: any) => <p className="not-first:mt-1" {...props} />,
+  AlertCircleIcon: (props: any) => <AlertCircleIcon className="w-4 h-4 inline-block align-middle" {...props} />,
+  BookOpenIcon: (props: any) => <BookOpenIcon className="w-4 h-4 inline-block align-middle" {...props} />,
+  h1: (props: any) => <h1 className="text-3xl font-bold mt-3 mb-3 flex items-center gap-1 flex-wrap" {...props} />,
+  h2: (props: any) => <h2 className="text-xl font-semibold mt-2 mb-1 flex items-center gap-1 flex-wrap" {...props} />,
+  p: (props: any) => <p className="not-first:mt-1 wrap-break-word" {...props} />,
   a: (props: any) => <a className="font-medium text-primary underline underline-offset-4" target="_blank" rel="noopener noreferrer" {...props} />,
 };
 
@@ -69,10 +78,50 @@ const postPage = async ({
 
   const headings = getHeadings(post.content);
 
+  const dateTime = {
+    published: {
+      year: post.publishedAt?.getFullYear(),
+      month: post.publishedAt?.getMonth(),
+      day: post.publishedAt?.getDate(),
+      hours: post.publishedAt?.getHours(),
+      minutes: post.publishedAt?.getMinutes(),
+    },
+    updated: {
+      year: post.updatedAt?.getFullYear(),
+      month: post.updatedAt?.getMonth(),
+      day: post.updatedAt?.getDate(),
+      hours: post.updatedAt?.getHours(),
+      minutes: post.updatedAt?.getMinutes(),
+    },
+  };
+
+  const formattedDateTime = {
+    published: {
+      year: dateTime.published.year,
+      month: dateTime.published.month?.toString().padStart(2, '0'),
+      day: dateTime.published.day?.toString().padStart(2, '0'),
+      hours: dateTime.published.hours?.toString().padStart(2, '0'),
+      minutes: dateTime.published.minutes?.toString().padStart(2, '0'),
+    },
+    updated: {
+      year: dateTime.updated.year,
+      month: dateTime.updated.month?.toString().padStart(2, '0'),
+      day: dateTime.updated.day?.toString().padStart(2, '0'),
+      hours: dateTime.updated.hours?.toString().padStart(2, '0'),
+      minutes: dateTime.updated.minutes?.toString().padStart(2, '0'),
+    },
+  };
+
   return (
     <div className="py-10 px-4 flex flex-col lg:flex-row gap-10">
-      <article className="flex grow flex-col py-10 px-4">
-        <h1 className="text-5xl flex justify-center items-center font-extrabold mb-8">{post.title}</h1>
+      <article className="flex grow min-w-0 w-full flex-col">
+        <h1 className="text-5xl flex justify-center items-center font-extrabold mb-2">{post.title}</h1>
+        <p className="text-muted-foreground text-sm flex justify-center items-center">
+          Published on {formattedDateTime.published.day}.{formattedDateTime.published.month}.{formattedDateTime.published.year} at {formattedDateTime.published.hours}:{formattedDateTime.published.minutes}
+        </p>
+        <p className="text-muted-foreground text-sm flex justify-center items-center">
+          Last updated on {formattedDateTime.updated.day}.{formattedDateTime.updated.month}.{formattedDateTime.updated.year} at {formattedDateTime.updated.hours}:{formattedDateTime.updated.minutes}
+        </p>
         <MDXRemote 
           source={post.content} 
           components={mdxComponents}

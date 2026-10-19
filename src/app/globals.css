@@ -121,7 +121,7 @@
   }
 
   figure[data-rehype-pretty-code-figure] pre {
-    @apply py-4 m-0 overflow-x-auto rounded-none bg-transparent;
+    @apply py-4 m-0 max-w-full overflow-x-auto rounded-none bg-transparent;
   }
 
   figure[data-rehype-pretty-code-figure] code {
@@ -151,11 +151,19 @@
   }
 
   figure[data-rehype-pretty-code-figure] {
-    @apply my-2 overflow-hidden rounded-xl border border-white/10 bg-[#0d1117];
+    @apply my-2 max-w-full overflow-hidden rounded-xl border border-white/10 bg-[#0d1117];
   }
 
   figcaption[data-rehype-pretty-code-title] {
     @apply px-4 py-3 text-sm font-medium border-b border-white/10 bg-white/5 text-gray-200;
+  }
+
+  figure[data-rehype-pretty-code-figure] pre[data-language="wrap"] {
+    @apply whitespace-pre-wrap break-words overflow-x-hidden;
+  }
+  
+  figure[data-rehype-pretty-code-figure] pre[data-language="wrap"] code {
+    @apply whitespace-pre-wrap break-words;
   }
 
   :not(pre) > code {
