@@ -21,13 +21,13 @@ function getHeadings(source: string) {
   const slugger = new GithubSlugger();
   
   const headingLines = source.split('\n').filter((line) => {
-    return line.match(/^##?\s/);
+    return line.match(/^#{1,3}\s/);
   });
 
   return headingLines.map((raw) => {
-    const level = raw.startsWith('##') ? 3 : 2;
+    const level = raw.match(/^#+/)?.[0].length! + 1;
     const text = raw
-      .replace(/^##?\s/, '')
+      .replace(/^#{1,3}\s/, '')
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
       .replace(/<[^>]+>/g, '')
       .replace(/[`*]/g, '')
@@ -53,6 +53,7 @@ const mdxComponents = {
   BookOpenIcon: (props: any) => <BookOpenIcon className="w-4 h-4 inline-block align-middle" {...props} />,
   h1: (props: any) => <h1 className="text-3xl font-bold mt-3 mb-3 flex items-center gap-1 flex-wrap" {...props} />,
   h2: (props: any) => <h2 className="text-xl font-semibold mt-2 mb-1 flex items-center gap-1 flex-wrap" {...props} />,
+  h3: (props: any) => <h3 className="text-lg font-semibold mt-2 mb-1 flex items-center gap-1 flex-wrap" {...props} />,
   p: (props: any) => <p className="not-first:mt-1 wrap-break-word" {...props} />,
   a: (props: any) => <a className="font-medium text-primary underline underline-offset-4" target="_blank" rel="noopener noreferrer" {...props} />,
 };
@@ -113,13 +114,13 @@ const postPage = async ({
   };
 
   return (
-    <div className="py-10 px-4 flex flex-col lg:flex-row gap-10">
+    <div className="py-10 px-4 flex flex-row gap-10">
       <article className="flex grow min-w-0 w-full flex-col">
-        <h1 className="text-5xl flex justify-center items-center font-extrabold mb-2">{post.title}</h1>
-        <p className="text-muted-foreground text-sm flex justify-center items-center">
+        <h1 className="text-5xl flex md:justify-center items-center font-extrabold mb-2">{post.title}</h1>
+        <p className="text-muted-foreground text-sm flex md:justify-center items-center">
           Published on {formattedDateTime.published.day}.{formattedDateTime.published.month}.{formattedDateTime.published.year} at {formattedDateTime.published.hours}:{formattedDateTime.published.minutes}
         </p>
-        <p className="text-muted-foreground text-sm flex justify-center items-center">
+        <p className="text-muted-foreground text-sm flex md:justify-center items-center">
           Last updated on {formattedDateTime.updated.day}.{formattedDateTime.updated.month}.{formattedDateTime.updated.year} at {formattedDateTime.updated.hours}:{formattedDateTime.updated.minutes}
         </p>
         <MDXRemote 
@@ -149,8 +150,9 @@ const postPage = async ({
                 key={heading.id} 
                 href={`#${heading.id}`}
                 className={`text-muted-foreground hover:text-foreground transition-colors ${
-                  heading.level === 3 ? 'ml-4' : '' // Indent H3s
-                }`}
+                  heading.level === 3 ? 'ml-3' : '' // Indent H3s
+                } ${heading.level === 4 ? 'ml-6' : ''
+                } `}
               >
                 {heading.text}
               </a>

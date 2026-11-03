@@ -7,3 +7,11 @@ import { eq } from "drizzle-orm";
 export const getPostById = async (postId: string) => {
   return (await db.select().from(posts).where(eq(posts.id, postId))).at(0);
 };
+
+export const getAllPosts = async () => {
+  return await db.select({
+    id: posts.id,
+    title: posts.title,
+    updatedAt: posts.updatedAt})
+    .from(posts);
+};

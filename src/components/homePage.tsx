@@ -58,6 +58,14 @@ const HomePage: FC<Props> = ({ lastUpdatedData }) => {
             </Link>
             <p className="text-gray-500 dark:text-gray-400">Last updated: { formatedDates['date3'] }</p>
         </div>
+        <div>
+            <Link href="/post" className="text-xl flex flex-row items-center hover:underline">
+                Posts
+                <SmartphoneIcon className="w-5 h-5 mb-0.5 ml-2"/>
+                <MonitorIcon className="w-5 h-5 mb-0.5 ml-2"/>
+            </Link>
+            <p className="text-gray-500 dark:text-gray-400">Last updated: { formatedDates['date4'] }</p>
+        </div>
         </main>
     );
 }
