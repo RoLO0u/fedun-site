@@ -24,10 +24,7 @@ jobs:
       - name: Inject Environment Variables
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env.production
-
-      - name: Inject Environment Variables
-        run: |
-          echo "${{ secrets.ENV_FILE }}" > .env.production
+          echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Open SSH Tunnel to Database
         env:
@@ -40,14 +37,14 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
 
-          # Point the build's env file to localhost (through the tunnel)
-          sed -i 's/172\.31\.48\.74/127.0.0.1/g' .env.production
+          # 1. Alias 172.31.48.74 to the runner's local loopback interface!
+          sudo ip addr add 172.31.48.74/32 dev lo
 
-          # Open the tunnel in the background using the private key
-          ssh -4 -N -f -i ~/.ssh/id_rsa -L 5432:172.31.48.74:5432 $USER@$HOST
+          # 2. Bind the SSH tunnel directly to 172.31.48.74:5432
+          ssh -4 -N -f -i ~/.ssh/id_rsa -L 172.31.48.74:5432:172.31.48.74:5432 $USER@$HOST
 
-          # Verify the local port is open before starting the build
-          timeout 10 bash -c 'until nc -z 127.0.0.1 5432; do sleep 0.5; done'
+          # 3. Verify that 172.31.48.74:5432 is open and listening locally
+          timeout 10 bash -c 'until nc -zv 172.31.48.74 5432; do sleep 0.5; done'
 
       - name: Build Next.js App
         run: npm run build
