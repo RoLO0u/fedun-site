@@ -19,7 +19,11 @@ async function sync() {
       content: content,
     }).onConflictDoUpdate({
       target: posts.id,
-      set: { title: frontmatter.title, content: content }
+      set: {
+        title: frontmatter.title,
+        content: content,
+        updatedAt: new Date(),
+      }
     });
     
     console.log(`Synced: ${frontmatter.id}`);

@@ -1,6 +1,6 @@
-"use server";
-
 import { getAllPosts } from "@/lib/db/postActions";
+
+export const dynamic = "force-dynamic";
 
 const postsPage = async () => {
   const posts = await getAllPosts();
