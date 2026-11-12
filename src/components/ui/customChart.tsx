@@ -7,6 +7,30 @@ import { Card, CardHeader, CardTitle, CardContent } from "./card";
 
 import { type GenericChartType } from "@/lib/dataSchema";
 
+function useResponsiveChartMargin() {
+  const [margin, setMargin] = React.useState({ right: 30, left: 90 });
+
+  React.useEffect(() => {
+    const updateMargin = () => {
+      const width = window.innerWidth;
+
+      setMargin(
+        width < 640
+          ? { right: 10, left: 20 }
+          : width < 1024
+            ? { right: 20, left: 50 }
+            : { right: 30, left: 80 }
+      );
+    };
+
+    updateMargin();
+    window.addEventListener("resize", updateMargin);
+    return () => window.removeEventListener("resize", updateMargin);
+  }, []);
+
+  return margin;
+}
+
 function VerticalChart({
   chartConfig, chartData, title}: 
   React.ComponentProps<"div"> & 
@@ -15,6 +39,8 @@ function VerticalChart({
     chartData: GenericChartType,
     title: string
   }) {
+  const margin = useResponsiveChartMargin();
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -24,7 +50,7 @@ function VerticalChart({
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="w-full min-h-screen sm:min-h-[80vh] text-xl md:text-base md:min-h-[60vh] lg:min-h-[50vh] xl:h-auto">
-          <BarChart accessibilityLayer data={chartData} layout="vertical" margin={{ right: 30, left: 90 }}>
+          <BarChart accessibilityLayer data={chartData} layout="vertical" margin={margin}>
             <CartesianGrid horizontal={false} />
             <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
             <YAxis
@@ -50,8 +76,12 @@ function VerticalChart({
               <LabelList
                 dataKey="label"
                 position="insideLeft"
+                formatter={(value: string | number | undefined) =>
+                  String(value).replace(/ /g, "\u00a0")
+                }
                 style={{
                   fill: "var(--secondary-foreground)",
+                  whiteSpace: "nowrap",
                 }}
               />
             </Bar>

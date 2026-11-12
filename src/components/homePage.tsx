@@ -28,10 +28,7 @@ const HomePage: FC<Props> = ({ lastUpdatedData }) => {
         <div>
             <Link href="/analyze" className="text-xl flex flex-row items-center hover:underline">
                 Analyze telegram chats
-                <div className="ml-2 relative inline-flex items-center justify-center">
-                    <SmartphoneIcon className="w-5 h-5" />
-                    <SlashIcon className="absolute inset-auto m-auto w-5 h-5 -scale-x-100 scale-y-75" />
-                </div>
+                <SmartphoneIcon className="w-5 h-5 mb-0.5 ml-2"/>
                 <MonitorIcon className="w-5 h-5 ml-2"/>
             </Link>
             <p className="text-gray-500 dark:text-gray-400">Last updated: { formatedDates['date0'] }</p>

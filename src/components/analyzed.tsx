@@ -41,8 +41,8 @@ const Analyzed: React.FC<AnalyzedProps> = ({ json }) => {
   const chartData = parseChartData(json.messages, minLength);
   const [mostUsedWords, setMostUsedWords] = React.useState(chartData.mostUsedWords);
   const [messagesOverTime, setMessagesOverTime] = React.useState(chartData.messagesOverTime);
-  const [selectedUser, setSelectedUser] = React.useState<string | null>(null); 
   const users = chartData.messagesPerUser.map((user) => user.label);
+  const userOptions = ["All Users", ...users];
 
   return (
     <>
@@ -53,52 +53,47 @@ const Analyzed: React.FC<AnalyzedProps> = ({ json }) => {
           Last message sent: {parseDate(json.messages[json.messages.length - 1].date)}
         </p>
       </div>
-      <div className="w-full flex flex-wrap justify-between">
-        <div className="w-full xl:w-[49%] max-h-screen pb-2 xl:pb-8">
+      <div className="w-full flex flex-wrap justify-between gap-y-4">
+        <div className="w-full xl:w-[49%] pb-2 xl:pb-8">
           <VerticalChart title="Messages per user" chartConfig={chartConfig} chartData={chartData.messagesPerUser} />
         </div>
-        <div className="w-full xl:w-[49%] max-h-screen pb-2">
+        <div className="w-full xl:w-[49%] pb-2">
           <VerticalChart title="Characters per user" chartConfig={chartConfig} chartData={chartData.charactersPerUser} />
         </div>
-        <div className="w-full xl:w-[49%] max-h-screen">
-          <div className="flex items-center justify-center gap-4 w-full xl:mt-0 mt-4 mb-4">
-            <p>Minimum characters in word:</p>
-            <Slider min={1} defaultValue={[minLength]} max={10} className="max-w-40" onValueChange={
-              (val) => {
-                setMinLength(val[0]);
-                setMostUsedWords(calculateMostUsedWords(json.messages, val[0]));
-              }
-            } />
-            <p>{minLength}</p>
+        <div className="w-full xl:w-[49%]">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full xl:mt-0 mt-4 mb-4">
+            <p className="whitespace-nowrap">Minimum characters in word:</p>
+            <div className="flex w-full max-w-40 items-center justify-center gap-4">
+              <Slider min={1} defaultValue={[minLength]} max={10} className="w-full" onValueChange={
+                (val) => {
+                  setMinLength(val[0]);
+                  setMostUsedWords(calculateMostUsedWords(json.messages, val[0]));
+                }
+              } />
+              <p>{minLength}</p>
+            </div>
           </div>
           <VerticalChart title="Most used words" chartConfig={chartConfig} chartData={mostUsedWords} />
         </div>
-        <div className="w-full xl:w-[49%] max-h-screen">
+        <div className="w-full xl:w-[49%]">
           <div className="flex items-center justify-center gap-4 w-full xl:mt-0 mt-4 mb-4">
-            <p>Select user</p>
-            <Combobox items={users} 
+            <Combobox items={userOptions}
               itemToStringValue={(item) => {
-                if (item == null) {
-                  return "All Users";
-                }
-                return item;
+                return item ?? "";
               }}
               onValueChange={(value?: string | null) => {
-                setSelectedUser(value ?? null);
-                setMessagesOverTime(calculateMessagesOverTime(json.messages, value ?? undefined));
+                const user = value === "All Users" ? null : (value ?? null);
+                setMessagesOverTime(calculateMessagesOverTime(json.messages, user ?? undefined));
               }}
             >
               <ComboboxInput placeholder="Select user" className="w-40" />
               <ComboboxContent>
                 <ComboboxList>
-                  <ComboboxItem key="All Users" value={null}>
-                    <i>All Users</i>
-                  </ComboboxItem>
-                  {users.map((user) => (
+                  {(user: string) => (
                     <ComboboxItem key={user} value={user}>
-                      {user}
+                      {user === "All Users" ? <i>{user}</i> : user}
                     </ComboboxItem>
-                  ))}
+                  )}
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
