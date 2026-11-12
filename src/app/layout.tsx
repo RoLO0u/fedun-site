@@ -8,6 +8,7 @@ import { ModeToggle } from "@/components/ui/mode-toggle";
 import { Separator } from "@/components/ui/separator";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 import { ExternalLinkIcon, MenuIcon } from "lucide-react";
@@ -49,6 +50,7 @@ export default async function RootLayout({
           disableTransitionOnChange
           storageKey="theme"
         >
+        <Toaster />
         <header className="flex items-center justify-between">
           <Link href="/" passHref>
             <span className={`flex flex-row gap-0 hover:cursor-pointer hover:underline`}>

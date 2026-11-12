@@ -18,6 +18,7 @@ import { StickerSet, Sticker } from "@/types/telegram";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { Loader2Icon, MoveIcon } from "lucide-react";
+import { toast } from "sonner";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   DndContext,
@@ -357,11 +358,14 @@ export const StickerSetSortable = ({
     const sticker = stickerItems[oldPosition].sticker;
     try {
       const response = await fetch(`/api/sticker-set/set-position?sticker-id=${sticker.file_id}&position=${newPosition}`);
-      if (!response.ok) {
+      if (response.status !== 200) {
         console.error(`Failed to set position for sticker ${sticker.file_id}: ${response.statusText}`);
+        return false;
       }
+      return true;
     } catch (error) {
       console.error(`Error setting position for sticker ${sticker.file_id}:`, error);
+      return false;
     }
   };
 
@@ -369,44 +373,50 @@ export const StickerSetSortable = ({
     const { active, over } = event;
 
     if (over && active.id !== over?.id) {
-      await updateStickerPositions(
-        stickerItems.findIndex((item) => item.sticker.file_id === active.id),
-        stickerItems.findIndex((item) => item.sticker.file_id === over.id)
-      );
+      const oldIndex = stickerItems.findIndex((item) => item.sticker.file_id === active.id);
+      const newIndex = stickerItems.findIndex((item) => item.sticker.file_id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
       setStickerItems((items) => {
-        const oldIndex = items.findIndex((item) => item.sticker.file_id === active.id);
-        const newIndex = items.findIndex((item) => item.sticker.file_id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
+      if (await updateStickerPositions(oldIndex, newIndex)) {
+        toast.success("Sticker order was successfully changed.");
+        return;
+      }
+      toast.error("Failed to update sticker order. You can use built-in Telegram features to reorder stickers.");
     }
   };
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={stickerItems.map(({ sticker }) => sticker.file_id)} strategy={rectSortingStrategy}>
-        <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
-          {stickerItems.length ? stickerItems.map(({ sticker, url }, index) => (
-            url ?
-              <SortableSticker
-                key={sticker.file_id}
-                id={sticker.file_id}
-                sticker={sticker}
-                index={index + 1}
-                stickerSetTitle={stickerSet.title}
-                stickerUrl={url}
-              />
-              :
-              <div key={sticker.file_id} className="flex h-26 w-26 items-center justify-center">
-                <Loader2Icon className="h-8 w-8 animate-spin" aria-label={`Loading sticker ${index + 1}`} />
-              </div>
-          )) :
-            Array.from({ length: 16 }).map((_, i) => (
-              <Skeleton key={i} className="h-26 w-26" />
-            ))
-          }
-        </div>
-      </SortableContext>
-    </DndContext>
+    <>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={stickerItems.map(({ sticker }) => sticker.file_id)} strategy={rectSortingStrategy}>
+          <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
+            {stickerItems.length ? stickerItems.map(({ sticker, url }, index) => (
+              url ?
+                <SortableSticker
+                  key={sticker.file_id}
+                  id={sticker.file_id}
+                  sticker={sticker}
+                  index={index + 1}
+                  stickerSetTitle={stickerSet.title}
+                  stickerUrl={url}
+                />
+                :
+                <div key={sticker.file_id} className="flex h-26 w-26 items-center justify-center">
+                  <Loader2Icon className="h-8 w-8 animate-spin" aria-label={`Loading sticker ${index + 1}`} />
+                </div>
+            )) :
+              Array.from({ length: 16 }).map((_, i) => (
+                <Skeleton key={i} className="h-26 w-26" />
+              ))
+            }
+          </div>
+        </SortableContext>
+      </DndContext>
+    </>
   );
 };
   
