@@ -21,6 +21,7 @@ const AdminPage = () => {
     const [botDate, setBotDate] = useState<Date | undefined>(undefined);
     const [shortenerDate, setShortenerDate] = useState<Date | undefined>(undefined);
     const [stickerSetsDate, setStickerSetsDate] = useState<Date | undefined>(undefined);
+    const [postsDate, setPostsDate] = useState<Date | undefined>(undefined);
     const [users, setUsers] = useState<User[] | null>(null);
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [selectionResetSignal, setSelectionResetSignal] = useState(0);
@@ -147,6 +148,7 @@ const AdminPage = () => {
                 setBotDate(new Date(data.find((proj: {id: number, date: string}) => proj.id === 1)!.date));
                 setShortenerDate(new Date(data.find((proj: {id: number, date: string}) => proj.id === 2)!.date));
                 setStickerSetsDate(new Date(data.find((proj: {id: number, date: string}) => proj.id === 3)!.date));
+                setPostsDate(new Date(data.find((proj: {id: number, date: string}) => proj.id === 4)!.date));
             })
             .catch(console.error)
         fetch("/api/users/get-all")
@@ -203,12 +205,15 @@ const AdminPage = () => {
                 <Separator className="max-w-1/3" />
                 <Project label="Sticker Sets" date={stickerSetsDate!} setDate={setStickerSetsDate} />
                 <Separator className="max-w-1/3" />
+                <Project label="Posts" date={postsDate!} setDate={setPostsDate} />
+                <Separator className="max-w-1/3" />
                 <Button className="hover:cursor-pointer" onClick={() => {
                     const UTCDates = [
                         new Date(Date.UTC(analyzerDate?.getFullYear()!, analyzerDate?.getMonth(), analyzerDate?.getDate())),
                         new Date(Date.UTC(botDate?.getFullYear()!, botDate?.getMonth(), botDate?.getDate())),
                         new Date(Date.UTC(shortenerDate?.getFullYear()!, shortenerDate?.getMonth(), shortenerDate?.getDate())),
-                        new Date(Date.UTC(stickerSetsDate?.getFullYear()!, stickerSetsDate?.getMonth(), stickerSetsDate?.getDate()))
+                        new Date(Date.UTC(stickerSetsDate?.getFullYear()!, stickerSetsDate?.getMonth(), stickerSetsDate?.getDate())),
+                        new Date(Date.UTC(postsDate?.getFullYear()!, postsDate?.getMonth(), postsDate?.getDate()))
                     ]
                     fetch("/api/last-updated/update", {
                         method: "POST",
@@ -217,6 +222,7 @@ const AdminPage = () => {
                             { id: 1, date: UTCDates[1].toUTCString() },
                             { id: 2, date: UTCDates[2].toUTCString() },
                             { id: 3, date: UTCDates[3].toUTCString() },
+                            { id: 4, date: UTCDates[4].toUTCString() },
                         ]),
                         headers: {
                             "Content-Type": "application/json",
