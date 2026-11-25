@@ -1,111 +1,58 @@
-name: Deploy Next.js to EC2
+name: CI and Vercel Production Deploy
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-deploy:
+  validate-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '26'
-          cache: 'npm'
+          node-version: 22
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Inject Environment Variables
-        run: |
-          echo "${{ secrets.ENV_FILE }}" > .env.production
-          echo "${{ secrets.ENV_FILE }}" > .env
+      - name: Type-check
+        run: npx tsc --noEmit
 
-      - name: Open SSH Tunnel to Database
+      - name: Install Vercel CLI
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel production settings
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
         env:
-          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel pull --yes --environment=production
 
-          # 1. Alias 172.31.48.74 to the runner's local loopback interface!
-          sudo ip addr add 172.31.48.74/32 dev lo
-
-          # 2. Bind the SSH tunnel directly to 172.31.48.74:5432
-          ssh -4 -N -f -i ~/.ssh/id_rsa -L 172.31.48.74:5432:172.31.48.74:5432 $USER@$HOST
-
-          # 3. Verify that 172.31.48.74:5432 is open and listening locally
-          timeout 10 bash -c 'until nc -zv 172.31.48.74 5432; do sleep 0.5; done'
-
-      - name: Build Next.js App
-        run: npm run build
-
-      - name: Prepare Standalone Output
-        run: |
-          cp -r .next/static .next/standalone/.next/
-          cp -r public .next/standalone/
-          # Ensure EC2 receives the original secrets file (pointing to 172.31.48.74), NOT the runner's localhost version
-          echo "${{ secrets.ENV_FILE }}" > .next/standalone/.env
-          cp ecosystem.config.js .next/standalone/
-
-      - name: Deploy to EC2 via rsync
+      - name: Build for production
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
         env:
-          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
-          RELEASE: /home/ubuntu/my-app-${{ github.sha }}
-        run: |
-          # Set up SSH key securely
-          mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-          
-          # Upload to an isolated directory so PM2 never serves a half-written build.
-          ssh $USER@$HOST "rm -rf '$RELEASE' && mkdir -p '$RELEASE'"
-          rsync -az --delete .next/standalone/ $USER@$HOST:$RELEASE/
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel build --prod
 
-          # Keep the existing PM2 config with the new release if it lives in the app root.
-          ssh $USER@$HOST "if [ -f /home/ubuntu/my-app/ecosystem.config.js ]; then cp /home/ubuntu/my-app/ecosystem.config.js '$RELEASE/'; fi"
-
-          # Keep older static chunks available to clients holding cached HTML/RSC data.
-          ssh $USER@$HOST "if [ -d /home/ubuntu/my-app/.next/static ]; then cp -a /home/ubuntu/my-app/.next/static/. '$RELEASE/.next/static/'; fi"
-
-          # Replace the live directory after the upload has completed.
-          ssh $USER@$HOST "mv /home/ubuntu/my-app /home/ubuntu/my-app-previous-${{ github.sha }} 2>/dev/null || true && mv '$RELEASE' /home/ubuntu/my-app"
-
-      - name: Link IP Database
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/my-app
-            mkdir -p node_modules/geoip-lite/data
-            rm -f node_modules/geoip-lite/data/*
-            ln -s -t node_modules/geoip-lite/data /home/ubuntu/map-data/*
-
-      - name: Restart PM2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/my-app
-            if [ -f ecosystem.config.js ]; then
-              npx --yes pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
-            else
-              pm2 start "node server.js" --name fedun-site --watch false --env-production
-            fi
-            npx --yes pm2 save
-            rm -rf /home/ubuntu/my-app-previous-*
+      - name: Deploy to Vercel production
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel deploy --prebuilt --prod
