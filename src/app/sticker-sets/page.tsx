@@ -23,6 +23,7 @@ const StickerSetsPage = () => {
   const [firstStickers, setFirstStickers] = useState<string[]>([]);
   const [thumbnails, setThumbnails] = useState<(string | null)[]>([]);
   const [errorState, setErrorState] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState<string | null>(null);
   const {
     data: session,
@@ -31,23 +32,38 @@ const StickerSetsPage = () => {
   } = authClient.useSession();
   
   useEffect(() => {
+    let cancelled = false;
+
     const fetchStickerSets = async () => {
+      setIsLoading(true);
+      setErrorState(null);
       try {
         const response = await fetch("/api/sticker-set/get-all");
         if (!response.ok) {
-          setErrorState(`Error fetching sticker sets: ${response.statusText}`);
-          return;
+          throw new Error(`Error fetching sticker sets: ${response.statusText}`);
         }
         const data = await response.json();
-        setStickerSets(data.stickerSets);
-        setFirstStickers(data.firstStickers);
-        setThumbnails(data.thumbnails);
+        if (!cancelled) {
+          setStickerSets(data.stickerSets);
+          setFirstStickers(data.firstStickers);
+          setThumbnails(data.thumbnails);
+        }
       } catch (error) {
-        setErrorState(`Error fetching sticker sets: ${error}`);
+        if (!cancelled) {
+          setErrorState(`Error fetching sticker sets: ${error}`);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchStickerSets();
+
+    return () => {
+      cancelled = true;
+    };
   }, [session?.user?.telegram]);
 
   if (isPending) {
@@ -62,7 +78,7 @@ const StickerSetsPage = () => {
   if (!session || !session.user || session.user.isAnonymous) {
     return (
       <div className="flex flex-col items-center justify-center grow py-2">
-        <h1 className="text-2xl font-bold mb-4">{!session || !session.user ? "You are not logged in!" : "You're logged in anonimously"}</h1>
+        <h1 className="text-2xl font-bold mb-4">{!session || !session.user ? "You are not logged in!" : "You're logged in anonymously"}</h1>
         <p className="text-lg text-gray-600">Please log in to view your sticker sets.</p>
         <GoogleSignInButton callbackURL={window.location.href} className="mt-3 mb-1" shrink={false} />
       </div>
@@ -80,7 +96,7 @@ const StickerSetsPage = () => {
   
   if (!session?.user?.telegram) {
     return (
-      <main className="flex flex-wrap grow justify-center content-center items-center h-full">
+      <div className="flex flex-wrap grow justify-center content-center items-center h-full">
         <Card>
           <CardHeader className="text-2xl w-full flex justify-center font-bold">Telegram Not Linked</CardHeader>
           <CardContent className="flex flex-col items-center justify-center gap-4">
@@ -104,16 +120,20 @@ const StickerSetsPage = () => {
             </div>
           </CardContent>
         </Card>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex flex-col gap-2 flex-wrap grow justify-center content-center items-center h-full">
+    <div className="flex flex-col gap-2 flex-wrap grow justify-center content-center items-center h-full">
       <h1 className="text-4xl font-bold mt-4">Your Sticker Sets</h1>
       <div className="text-lg text-center">Move your stickers to change the order of them in the set<br/>The changed order is saved automatically</div>
       <div className="flex flex-wrap justify-center gap-4 mt-4">
-        {stickerSets.length ? stickerSets.map((stickerSet, index) => (
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-81.5 w-62.5" />
+          ))
+        ) : stickerSets.length ? stickerSets.map((stickerSet, index) => (
           <Card key={stickerSet.name} className="gap-1">
             <CardHeader className="flex flex-row content-center justify-center text-lg font-semibold">
               {stickerSet.title}
@@ -150,17 +170,22 @@ const StickerSetsPage = () => {
               </Dialog>
             </CardContent>
           </Card>
-          )) : (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-81.5 w-62.5" />
-            ))
-        )
-        }
+        )) : (
+          <div className="max-w-md rounded-lg border p-6 text-center">
+            <p className="font-medium">No sticker sets found</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Create a sticker set with the Sticker Packs Bot and it will appear here.
+            </p>
+            <Link href="https://t.me/paces_bot" className="mt-4 inline-block text-primary underline">
+              Open Sticker Packs Bot
+            </Link>
+          </div>
+        )}
       </div>
       <div className="mt-4">
         <UnlinkTelegramButton />
       </div>
-    </main>
+    </div>
   );
 }
 

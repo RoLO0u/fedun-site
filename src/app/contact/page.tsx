@@ -4,7 +4,7 @@ import { SiGithub, SiX, SiTelegram, SiGmail, SiBluesky } from "@icons-pack/react
 
 const ContactPage = () => {
   return (
-    <main className="flex grow flex-col mt-5 gap-4">
+    <div className="flex grow flex-col mt-5 gap-4">
       <h1 className="text-2xl">Contact Me</h1>
       <ul className="flex flex-col gap-2">
       <li>
@@ -43,7 +43,7 @@ const ContactPage = () => {
         </Link>
       </li>
       </ul>
-    </main>
+    </div>
   );
 };
 

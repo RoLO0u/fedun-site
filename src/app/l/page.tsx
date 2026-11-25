@@ -110,7 +110,7 @@ const LinkPage = () => {
   }
 
   return (
-    <main className="flex gap-2 flex-wrap grow justify-center content-center items-center h-full">
+    <div className="flex gap-2 flex-wrap grow justify-center content-center items-center h-full">
       <Card className="gap-4">
         <CardHeader>
           <CardTitle>Simple URL Shortener</CardTitle>
@@ -260,7 +260,7 @@ const LinkPage = () => {
         )}
         <LinksList userId={session.data?.user?.id ?? ""} />
       </div>
-    </main>
+    </div>
   );
 };
 

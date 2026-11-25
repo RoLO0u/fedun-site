@@ -163,7 +163,7 @@ const dashboardPage = () => {
   const shortUrl = `${window.location.origin}/l/${foundLink.shortUrl}`;
 
   return (
-    <main className="mt-4 flex grow flex-col gap-4">
+    <div className="mt-4 flex grow flex-col gap-4">
       <div className="grid w-full items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)]">
         <Card className="w-full gap-4">
           <CardHeader>
@@ -361,7 +361,7 @@ const dashboardPage = () => {
       <div className="w-full">
         <LinksList userId={session.data?.user?.id || ""} />
       </div>
-    </main>
+    </div>
   );
 };
 

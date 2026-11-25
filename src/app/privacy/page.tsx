@@ -1,6 +1,6 @@
 const PrivacyPolicyPage = () => {
   return (
-    <main className="mx-auto flex w-full max-w-3xl grow flex-col gap-4 py-5 leading-7">
+    <div className="mx-auto flex w-full max-w-3xl grow flex-col gap-4 py-5 leading-7">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground">Last updated: November 25, 2026</p>
@@ -161,7 +161,7 @@ const PrivacyPolicyPage = () => {
           .
         </p>
       </section>
-    </main>
+    </div>
   );
 };
 

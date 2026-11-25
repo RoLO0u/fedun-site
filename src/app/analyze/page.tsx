@@ -84,14 +84,13 @@ const AnalyzePage = () => {
   const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
 
   return (
-    <main className="flex flex-col grow justify-center items-center h-full">
+    <div className="flex flex-col grow justify-center items-center h-full">
       <Card className="gap-4 sm:w-96 w-90 md:w-120">
         <CardHeader>
           <CardTitle>Telegram Group Chat Analyzer</CardTitle>
           <CardDescription>
             Show activity of users in any group chat, their best messages, and
-            more <br />
-            ⚠️ Warning: the UI is broken on phones 📵  
+            more
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -161,7 +160,7 @@ const AnalyzePage = () => {
           </div>
         </CardFooter>
       </Card>
-    </main>
+    </div>
   );
 };
 

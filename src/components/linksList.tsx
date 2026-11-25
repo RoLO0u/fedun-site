@@ -14,13 +14,30 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { CopiedSuccess } from "@/components/copiedSuccess";
-import { CheckIcon, XIcon, InfoIcon, ExternalLinkIcon } from "lucide-react";
+import { CheckIcon, XIcon, InfoIcon, ExternalLinkIcon, Loader2Icon, CircleXIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function LinksList({ userId }: { userId: string }) {
-  const [links, setLinks] = useState<LinkType[]>([]);
+  const [links, setLinks] = useState<LinkType[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   
   useEffect(() => {
-    if (!userId) return;
+    let cancelled = false;
+    if (!userId) {
+      setLinks(null);
+      setIsLoading(false);
+      setError(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setLinks(null);
+    setIsLoading(true);
+    setError(false);
+
     async function fetchLinks() {
       try {
         const response = await fetch(`/api/shortener/get-all`, {
@@ -36,15 +53,59 @@ export function LinksList({ userId }: { userId: string }) {
           throw new Error("Failed to fetch links");
         }
         const data: LinkType[] = await response.json();
-        setLinks(data);
+        if (!cancelled) {
+          setLinks(data);
+        }
       } catch (error) {
         console.error(error);
+        if (!cancelled) {
+          setError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
     fetchLinks();
-  }, [userId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, retryCount]);
 
-  if (!links.length || !userId) {
+  if (!userId) {
+    return (
+      <Card className="px-4 py-3 gap-2 flex flex-row justify-center items-center">
+        <InfoIcon className="inline-block min-w-4 min-h-4 text-blue-500 dark:text-blue-700" />
+        Sign in or continue as a guest to view your short links here
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="px-4 py-3 gap-2 flex flex-row justify-center items-center" role="status">
+        <Loader2Icon className="h-4 w-4 animate-spin" />
+        Loading your short links...
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="px-4 py-3 gap-3 flex flex-col justify-center items-center" role="alert">
+        <div className="flex items-center gap-2">
+          <CircleXIcon className="h-4 w-4 text-destructive" />
+          Could not load your short links.
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setRetryCount((count) => count + 1)}>
+          Try again
+        </Button>
+      </Card>
+    );
+  }
+
+  if (!links?.length) {
     return (
       <Card className="px-4 py-3 gap-2 flex flex-row justify-center items-center">
         <InfoIcon className="inline-block min-w-4 min-h-4 text-blue-500 dark:text-blue-700" />

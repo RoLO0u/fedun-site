@@ -2,7 +2,7 @@ import React from 'react';
 
 const DefaultMain: React.FC = () => {
     return (
-        <main className='flex flex-grow'></main>
+        <div className='flex flex-grow'></div>
     );
 };
 

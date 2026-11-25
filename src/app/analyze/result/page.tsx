@@ -3,10 +3,12 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
+import Link from "next/link";
 
 import { Loader2 } from "lucide-react";
 import Analyzed from "@/components/analyzed";
 import DefaultMain from "@/components/defaultMain";
+import { Button } from "@/components/ui/button";
 
 import useFileStore from "@/lib/useFileStore";
 import { chatSchema } from "@/lib/chatSchema";
@@ -60,17 +62,20 @@ const AnalyzeResultPage = () => {
 
   if (error) {
     return (
-      <main className="text-center items-center justify-center flex flex-col gap-4 grow px-4">
+      <div className="text-center items-center justify-center flex flex-col gap-4 grow px-4">
         <p className="text-sm text-red-500">{error}</p>
         <p className="text-sm text-muted-foreground">
           Check that the export is complete and has not been edited or truncated.
         </p>
-      </main>
+        <Button asChild variant="outline">
+          <Link href="/analyze">Choose another file</Link>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <main className="text-center items-center justify-center flex flex-col gap-4 grow">
+    <div className="text-center items-center justify-center flex flex-col gap-4 grow">
       {json ? (
         <Suspense fallback={<Loader2 className="animate-spin" />}>
           <Analyzed json={json} />
@@ -78,7 +83,7 @@ const AnalyzeResultPage = () => {
       ) : (
         <Loader2 className="animate-spin" />
       )}
-    </main>
+    </div>
   );
 };
 
