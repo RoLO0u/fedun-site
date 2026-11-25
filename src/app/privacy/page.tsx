@@ -3,7 +3,7 @@ const PrivacyPolicyPage = () => {
     <div className="mx-auto flex w-full max-w-3xl grow flex-col gap-4 py-5 leading-7">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold">Privacy Policy</h1>
-        <p className="text-sm text-muted-foreground">Last updated: November 25, 2026</p>
+        <p className="text-sm text-muted-foreground">Last updated: November 26, 2026</p>
       </header>
 
       <p>
@@ -79,6 +79,15 @@ const PrivacyPolicyPage = () => {
           usernames, pack identifiers, sticker metadata, and files needed to display or manage
           sticker sets. Some related records are held in a separate database used by the sticker
           service.
+        </p>
+        <p>
+          When you add a sticker or upload a thumbnail, the file is sent to our application server
+          and then to Telegram to apply the change. Image resizing and most conversions happen in
+          your browser. For some WEBM thumbnails, our server may encode a resized image frame or
+          an existing sticker video with FFmpeg, for example when browser encoding is unavailable
+          or does not meet Telegram&apos;s size limit. The server-side encoder uses temporary files
+          and removes them after processing; uploaded files are not stored as separate records in
+          our application database.
         </p>
         <p>
           The sticker editor sends requests from our server to the Telegram Bot API to retrieve
