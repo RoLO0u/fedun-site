@@ -1,19 +1,11 @@
 import type { Metadata } from "next";
 
-import Image from "next/image";
-import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
-
-import { ModeToggle } from "@/components/ui/mode-toggle";
-import { Separator } from "@/components/ui/separator";
-
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { SiteShell } from "@/components/siteShell";
 
 import "./globals.css";
-import { ExternalLinkIcon, MenuIcon } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import HomepageProfile from "@/components/homepageProfile";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +34,6 @@ export default async function RootLayout({
         <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
-        <div className="p-5 flex flex-col min-h-screen 2xl:mx-32 xl:mx-20">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -51,113 +42,8 @@ export default async function RootLayout({
           storageKey="theme"
         >
         <Toaster />
-        <header className="flex items-center justify-between">
-          <Link href="/" passHref className="home-brand-link">
-            <span className="flex flex-row gap-0 hover:cursor-pointer">
-              <Image
-                src="/logo.ico"
-                alt="Home"
-                className="mr-1"
-                width={32}
-                height={32}
-                unoptimized
-              />
-              <span className="home-link inline-block font-semibold text-xl">Fedun.Site</span>
-            </span>
-          </Link>
-          <span className={`flex flex-row gap-4 items-center`}>
-            <Link href="https://github.com/RoLO0u" target="_blank" className="header-outline-control">
-              <Image
-                width={30}
-                height={30} 
-                src="/github.svg"
-                alt="GitHub"
-                className="dark:invert"
-              />
-              <svg className="header-outline-ring size-full" viewBox="0 0 40 40" aria-hidden="true">
-                <circle cx="20" cy="20" r="19" pathLength="100" />
-              </svg>
-            </Link>
-            <Link href="https://t.me/feddunn" target="_blank" className="header-outline-control">
-              <Image
-                width={30}
-                height={30}
-                src="/telegram.svg"
-                alt="Telegram"
-                className="dark:invert"
-              />
-              <svg className="header-outline-ring size-full" viewBox="0 0 40 40" aria-hidden="true">
-                <circle cx="20" cy="20" r="19" pathLength="100" />
-              </svg>
-            </Link>
-            <HomepageProfile />
-            <ModeToggle />
-          </span>
-        </header>
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
-        <footer className="mt-10 flex justify-center items-center">
-          <div className="flex space-x-3 h-5 items-center">
-            <Link href="/" className="hover:underline hidden sm:block" >
-              Fedun.Site
-            </Link>
-            <Separator orientation="vertical" className="hidden sm:block" />
-            <Link href="/contact" className="hover:underline hidden sm:block">
-              Contact me
-            </Link>
-            <Separator orientation="vertical" className="hidden sm:block" />
-            <Link href="/privacy" className="hover:underline">
-              Privacy Policy
-            </Link>
-            <Separator orientation="vertical" />
-            <Link href="https://github.com/RoLO0u/fedun-site" target="_blank" className="hover:underline sm:flex items-center gap-1 hidden">
-              Source Code <ExternalLinkIcon className="w-4 h-4 mb-0.5"/>
-            </Link>
-            <Separator orientation="vertical" className="hidden sm:block" />
-            <Link href="/admin" className="hover:underline hidden sm:block">
-              Admin Panel
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="visible sm:hidden">
-                <MenuIcon className="h-6 w-6"/>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="mr-5">
-                  <DropdownMenuGroup className="text-foreground text-xl flex flex-col gap-2 my-1.5">
-                    <Link href="/">
-                      <DropdownMenuItem className={`flex flex-row gap-1.5 hover:cursor-pointer hover:underline font-semibold mx-1 text-xl`}>
-                        <Image
-                          src="/logo.ico"
-                          alt="Home"
-                          width={32}
-                          height={32}
-                          unoptimized
-                        />
-                        Fedun.Site 
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/contact" className="hover:underline flex">
-                      <DropdownMenuItem>
-                        Contact me
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="https://github.com/RoLO0u/fedun-site" target="_blank" className="hover:underline flex items-center gap-1">
-                      <DropdownMenuItem>
-                        Source Code <ExternalLinkIcon className="w-4 h-4 mb-0.5"/>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/admin" className="hover:underline flex">
-                      <DropdownMenuItem>
-                        Admin Panel
-                      </DropdownMenuItem>
-                    </Link>
-                  </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </footer>
+        <SiteShell>{children}</SiteShell>
         </ThemeProvider>
-        </div>
       </body>
     </html>
   );

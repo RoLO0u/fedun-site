@@ -1,13 +1,16 @@
 "use client";
 
 import { 
+  Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogClose
 } from "./ui/dialog";
 import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
 import {
   Popover,
   PopoverTrigger,
@@ -17,9 +20,28 @@ import { Skeleton } from "./ui/skeleton";
 import { StickerSet, Sticker } from "@/types/telegram";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { Loader2Icon, MoveIcon } from "lucide-react";
+import {
+  CheckIcon,
+  Loader2Icon,
+  DownloadIcon,
+  MoreHorizontalIcon,
+  MoveIcon,
+  PencilIcon,
+  Trash2Icon,
+  XIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { StickerEmojiInput, parseStickerEmojiList } from "./stickerEmojiInput";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import {
   DndContext,
   closestCenter,
@@ -38,6 +60,18 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "./ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 const MAX_VIDEO_RETRIES = 3;
 
@@ -47,13 +81,16 @@ const AnimatedSticker = ({
   stickerUrl,
   thumbnailUrl,
   className,
+  onThumbnailSourceReady,
 }: {
   index: number,
   stickerSetTitle: string,
   stickerUrl: string,
   thumbnailUrl?: string,
   className: string,
+  onThumbnailSourceReady?: (source: HTMLCanvasElement | HTMLImageElement | null) => void,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
@@ -63,15 +100,20 @@ const AnimatedSticker = ({
     const loadAndDecompressTgs = async () => {
       try {
         const response = await fetch(stickerUrl);
-        if (!response.body) return;
+        if (!response.ok) {
+          throw new Error(`Could not load the sticker (${response.status}).`);
+        }
 
-        // .tgs files are just GZipped Lottie JSON.
-        // We unpack it on the fly using the browser's native DecompressionStream
-        const decompressionStream = new DecompressionStream('gzip');
-        const decompressed = response.body.pipeThrough(decompressionStream);
-        
-        // Convert the unpacked stream into a JSON string
-        const jsonText = await new Response(decompressed).text();
+        const compressed = await response.arrayBuffer();
+        const bytes = new Uint8Array(compressed);
+        const isGzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
+        const jsonText = isGzip
+          ? await new Response(
+              new Blob([compressed]).stream().pipeThrough(
+                new DecompressionStream("gzip"),
+              ),
+            ).text()
+          : new TextDecoder().decode(compressed);
         setLottieJson(jsonText);
       } catch (error) {
         console.error("Failed to load or unpack TGS file:", error);
@@ -91,6 +133,7 @@ const AnimatedSticker = ({
           unoptimized
           alt={`${stickerSetTitle} sticker ${index}`}
           className={className}
+          onLoad={(event) => onThumbnailSourceReady?.(event.currentTarget)}
           onError={() => setThumbnailFailed(true)}
         />
       );
@@ -103,14 +146,22 @@ const AnimatedSticker = ({
   }
 
   return (
-    <div className={`${className} relative`} aria-busy={loading}>
+    <div ref={containerRef} className={`${className} relative`} aria-busy={loading}>
       <DotLottieReact
         data={lottieJson}
         autoplay
         loop
         style={{ width: '100%', height: '100%' }}
-        onLoad={() => setLoading(false)}
-        onError={() => setFailed(true)}
+        onLoad={() => {
+          setLoading(false);
+          onThumbnailSourceReady?.(
+            containerRef.current?.querySelector("canvas") ?? null,
+          );
+        }}
+        onError={() => {
+          setFailed(true);
+          onThumbnailSourceReady?.(null);
+        }}
       />
       {!lottieJson && (
         <Loader2Icon
@@ -129,6 +180,7 @@ const VideoSticker = ({
   stickerUrl,
   thumbnailUrl,
   className,
+  onThumbnailSourceReady,
 }: {
   sticker: Sticker,
   index: number,
@@ -136,6 +188,7 @@ const VideoSticker = ({
   stickerUrl: string,
   thumbnailUrl?: string,
   className: string,
+  onThumbnailSourceReady?: (source: HTMLVideoElement | HTMLImageElement | null) => void,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sourceUrl, setSourceUrl] = useState(stickerUrl);
@@ -192,6 +245,7 @@ const VideoSticker = ({
   }, []);
 
   const handleError = () => {
+    onThumbnailSourceReady?.(null);
     setLoading(true);
     if (retryCount < MAX_VIDEO_RETRIES) {
       setRetryCount((count) => count + 1);
@@ -211,6 +265,7 @@ const VideoSticker = ({
           unoptimized
           alt={`${stickerSetTitle} sticker ${index}`}
           className={className}
+          onLoad={(event) => onThumbnailSourceReady?.(event.currentTarget)}
           onError={() => setThumbnailFailed(true)}
         />
       );
@@ -235,7 +290,10 @@ const VideoSticker = ({
         preload="metadata"
         onError={handleError}
         onLoadStart={() => setLoading(true)}
-        onCanPlay={() => setLoading(false)}
+        onCanPlay={(event) => {
+          setLoading(false);
+          onThumbnailSourceReady?.(event.currentTarget);
+        }}
         aria-label={`${stickerSetTitle} sticker ${index}`}
         className="h-full w-full object-contain"
       />
@@ -256,6 +314,7 @@ export const RenderSticker = ({
   stickerUrl,
   thumbnailUrl,
   className,
+  onThumbnailSourceReady,
 }: {
   sticker: Sticker,
   index: number,
@@ -263,6 +322,9 @@ export const RenderSticker = ({
   stickerUrl: string,
   thumbnailUrl?: string,
   className: string,
+  onThumbnailSourceReady?: (
+    source: HTMLCanvasElement | HTMLImageElement | HTMLVideoElement | null,
+  ) => void,
 }) => {
   if (sticker.is_video) {
     return <VideoSticker
@@ -272,6 +334,7 @@ export const RenderSticker = ({
       stickerUrl={stickerUrl}
       thumbnailUrl={thumbnailUrl}
       className={className}
+      onThumbnailSourceReady={onThumbnailSourceReady}
     />;
   }
   if (sticker.is_animated) {
@@ -281,6 +344,7 @@ export const RenderSticker = ({
       stickerUrl={stickerUrl}
       thumbnailUrl={thumbnailUrl}
       className={className}
+      onThumbnailSourceReady={onThumbnailSourceReady}
     />;
   }
   return (
@@ -301,12 +365,26 @@ const SortableSticker = ({
   index,
   stickerSetTitle,
   stickerUrl,
+  onDeleteSticker,
+  selectionMode,
+  isSelected,
+  onStartSelection,
+  onSelectionChange,
+  onClearSelection,
+  onSetStickerEmojiList,
 }: {
   id: string,
   sticker: Sticker,
   index: number,
   stickerSetTitle: string,
   stickerUrl: string,
+  onDeleteSticker?: (sticker: Sticker) => Promise<boolean>,
+  selectionMode: boolean,
+  isSelected: boolean,
+  onStartSelection: (stickerId: string) => void,
+  onSelectionChange: (stickerId: string, selected: boolean) => void,
+  onClearSelection: () => void,
+  onSetStickerEmojiList?: (sticker: Sticker, emojiList: string[]) => Promise<boolean>,
 }) => {
   const {
     attributes,
@@ -314,18 +392,77 @@ const SortableSticker = ({
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id });
+  } = useSortable({ id, disabled: selectionMode });
+  const initialEmojiList = sticker.emoji || "😀";
+  const [emojiListText, setEmojiListText] = useState(initialEmojiList);
+  const [emojiSaveStatus, setEmojiSaveStatus] = useState<"saved" | "saving" | "error" | "invalid">("saved");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [emojiDialogOpen, setEmojiDialogOpen] = useState(false);
+  const lastSavedEmojiList = useRef(initialEmojiList);
+  const hasActions = Boolean(onDeleteSticker || onSetStickerEmojiList);
+  const fileExtension = sticker.is_video ? "webm" : sticker.is_animated ? "tgs" : "webp";
+  const downloadFileName = `sticker-${index}.${fileExtension}`;
 
-  return (
+  useEffect(() => {
+    if (!onSetStickerEmojiList) return;
+    if (emojiListText === lastSavedEmojiList.current) {
+      setEmojiSaveStatus("saved");
+      return;
+    }
+
+    const emojiList = parseStickerEmojiList(emojiListText);
+    if (emojiList.length < 1 || emojiList.length > 20) {
+      setEmojiSaveStatus("invalid");
+      return;
+    }
+
+    setEmojiSaveStatus("saving");
+    const timeout = window.setTimeout(async () => {
+      const saved = await onSetStickerEmojiList(sticker, emojiList);
+      if (saved) {
+        lastSavedEmojiList.current = emojiListText;
+        setEmojiSaveStatus("saved");
+      } else {
+        setEmojiSaveStatus("error");
+      }
+    }, 600);
+
+    return () => window.clearTimeout(timeout);
+  }, [emojiListText, onSetStickerEmojiList, sticker]);
+
+  const deleteSticker = async () => {
+    if (!onDeleteSticker) return;
+    setIsDeleting(true);
+    try {
+      const deleted = await onDeleteSticker(sticker);
+      if (deleted) setDeleteDialogOpen(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const stickerPreview = (
     <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
       {...attributes}
       {...listeners}
-      className="touch-none cursor-grab active:cursor-grabbing"
+      aria-label={
+        selectionMode
+          ? `Select sticker ${index} from ${stickerSetTitle}`
+          : `Sticker ${index} from ${stickerSetTitle}, drag to reorder`
+      }
+      aria-pressed={selectionMode ? isSelected : undefined}
+      className={selectionMode ? "cursor-pointer" : "touch-none cursor-grab active:cursor-grabbing"}
+      onClick={() => {
+        if (selectionMode) onSelectionChange(sticker.file_id, !isSelected);
+      }}
+      onKeyDownCapture={(event) => {
+        if (selectionMode && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          event.stopPropagation();
+          onSelectionChange(sticker.file_id, !isSelected);
+        }
+      }}
     >
       <RenderSticker
         sticker={sticker}
@@ -336,28 +473,265 @@ const SortableSticker = ({
       />
     </div>
   );
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={hasActions
+        ? `relative flex w-32 flex-col items-center gap-1 rounded-md border p-1 ${isSelected ? "border-primary bg-primary/5" : ""}`
+        : ""}
+    >
+      {selectionMode && (
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelectionChange(sticker.file_id, checked === true)}
+          aria-label={`Select sticker ${index}`}
+          className="absolute left-2 top-2 z-10 bg-background shadow-sm"
+        />
+      )}
+      {hasActions ? (
+        <ContextMenu>
+          <ContextMenuTrigger asChild>{stickerPreview}</ContextMenuTrigger>
+          <ContextMenuContent>
+            {selectionMode ? (
+              <ContextMenuItem onSelect={onClearSelection}>
+                <XIcon />
+                Clear selection
+              </ContextMenuItem>
+            ) : (
+              <ContextMenuItem onSelect={() => onStartSelection(sticker.file_id)}>
+                <CheckIcon />
+                Select multiple
+              </ContextMenuItem>
+            )}
+            <ContextMenuItem asChild>
+              <a href={stickerUrl} download={downloadFileName}>
+                <DownloadIcon />
+                Download sticker
+              </a>
+            </ContextMenuItem>
+            {onSetStickerEmojiList && (
+              <ContextMenuItem onSelect={() => setEmojiDialogOpen(true)}>
+                <PencilIcon />
+                Edit emoji
+              </ContextMenuItem>
+            )}
+            {onDeleteSticker && (
+              <ContextMenuItem
+                variant="destructive"
+                onSelect={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2Icon />
+                Delete sticker
+              </ContextMenuItem>
+            )}
+          </ContextMenuContent>
+        </ContextMenu>
+      ) : (
+        stickerPreview
+      )}
+      {hasActions && (
+        <div className="absolute right-0 top-0 md:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="size-8 shadow-sm"
+                aria-label={`Options for sticker ${index}`}
+              >
+                <MoreHorizontalIcon aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {selectionMode ? (
+                <DropdownMenuItem onSelect={onClearSelection}>
+                  <XIcon />
+                  Clear selection
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onSelect={() => onStartSelection(sticker.file_id)}>
+                  <CheckIcon />
+                  Select multiple
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem asChild>
+                <a href={stickerUrl} download={downloadFileName}>
+                  <DownloadIcon />
+                  Download sticker
+                </a>
+              </DropdownMenuItem>
+              {onSetStickerEmojiList && (
+                <DropdownMenuItem onSelect={() => setEmojiDialogOpen(true)}>
+                  <PencilIcon />
+                  Edit emoji
+                </DropdownMenuItem>
+              )}
+              {onDeleteSticker && (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2Icon />
+                  Delete sticker
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+      {onSetStickerEmojiList && (
+        <Dialog open={emojiDialogOpen} onOpenChange={setEmojiDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit sticker emoji</DialogTitle>
+              <DialogDescription>
+                Type or choose emoji. Changes are saved automatically.
+              </DialogDescription>
+            </DialogHeader>
+            <StickerEmojiInput
+              value={emojiListText}
+              onChange={setEmojiListText}
+              label={`Emoji list for sticker ${index}`}
+            />
+            <p className="min-h-4 text-xs text-muted-foreground" aria-live="polite">
+              {emojiSaveStatus === "saving"
+                ? "Saving…"
+                : emojiSaveStatus === "error"
+                  ? "Could not save emoji."
+                  : emojiSaveStatus === "invalid"
+                    ? "Enter 1–20 emoji."
+                    : "Emoji saved"}
+            </p>
+            <DialogFooter>
+              <Button type="button" onClick={() => setEmojiDialogOpen(false)}>
+                Done
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      {onDeleteSticker && (
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this sticker?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This removes the sticker from “{stickerSetTitle}”. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={isDeleting}
+                onClick={() => void deleteSticker()}
+              >
+                {isDeleting ? "Deleting…" : "Delete sticker"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
+  );
 };
 
 export const StickerSetSortable = ({
   stickerSet,
   stickerItems,
   setStickerItems,
+  onDeleteSticker,
+  onDeleteStickers,
+  onSetStickerEmojiList,
 }: {
   stickerSet: StickerSet,
   stickerItems: Array<{ sticker: Sticker, url: string }>,
   setStickerItems: React.Dispatch<React.SetStateAction<Array<{ sticker: Sticker, url: string }>>>,
+  onDeleteSticker?: (sticker: Sticker) => Promise<boolean>,
+  onDeleteStickers?: (stickers: Sticker[]) => Promise<boolean>,
+  onSetStickerEmojiList?: (sticker: Sticker, emojiList: string[]) => Promise<boolean>,
 }) => {
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedStickerIds, setSelectedStickerIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+  const selectedStickers = stickerItems
+    .map(({ sticker }) => sticker)
+    .filter((sticker) => selectedStickerIds.has(sticker.file_id));
+  const allStickersSelected =
+    stickerItems.length > 0 && selectedStickers.length === stickerItems.length;
+
+  const clearSelection = () => {
+    setSelectionMode(false);
+    setSelectedStickerIds(new Set());
+  };
+
+  const toggleSelectAll = () => {
+    if (allStickersSelected) {
+      clearSelection();
+      return;
+    }
+
+    setSelectedStickerIds(new Set(stickerItems.map(({ sticker }) => sticker.file_id)));
+  };
+
+  const toggleStickerSelection = (stickerId: string, selected: boolean) => {
+    const nextSelection = new Set(selectedStickerIds);
+    if (selected) {
+      nextSelection.add(stickerId);
+    } else {
+      nextSelection.delete(stickerId);
+    }
+
+    setSelectedStickerIds(nextSelection);
+    if (nextSelection.size === 0) setSelectionMode(false);
+  };
+
+  const startSelectionWithSticker = (stickerId: string) => {
+    setSelectionMode(true);
+    setSelectedStickerIds(new Set([stickerId]));
+  };
+
+  const deleteSelectedStickers = async () => {
+    if (!onDeleteStickers || selectedStickers.length === 0) return;
+
+    setIsBulkDeleting(true);
+    try {
+      const allDeleted = await onDeleteStickers(selectedStickers);
+      setBulkDeleteOpen(false);
+      if (allDeleted) clearSelection();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete selected stickers.");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
 
   const updateStickerPositions = async (oldPosition: number, newPosition: number) => {
     const sticker = stickerItems[oldPosition].sticker;
     try {
-      const response = await fetch(`/api/sticker-set/set-position?sticker-id=${sticker.file_id}&position=${newPosition}`);
+      const response = await fetch("/api/sticker-set/set-position", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          setName: stickerSet.name,
+          stickerId: sticker.file_id,
+          position: newPosition,
+        }),
+      });
       if (response.status !== 200) {
         console.error(`Failed to set position for sticker ${sticker.file_id}: ${response.statusText}`);
         return false;
@@ -392,8 +766,48 @@ export const StickerSetSortable = ({
   return (
     <>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        {onDeleteStickers && stickerItems.length > 0 && (
+          <div className="mb-3 flex w-full flex-wrap items-center justify-between gap-2">
+            {selectionMode ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <Button type="button" variant="outline" size="sm" onClick={toggleSelectAll}>
+                    {allStickersSelected ? "Deselect all" : "Select all"}
+                  </Button>
+                  <span className="text-sm text-muted-foreground" aria-live="polite">
+                    {selectedStickers.length} selected
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={clearSelection}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    disabled={selectedStickers.length === 0 || isBulkDeleting}
+                    onClick={() => setBulkDeleteOpen(true)}
+                  >
+                    <Trash2Icon aria-hidden="true" />
+                    Delete selected
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectionMode(true)}
+              >
+                Select multiple
+              </Button>
+            )}
+          </div>
+        )}
         <SortableContext items={stickerItems.map(({ sticker }) => sticker.file_id)} strategy={rectSortingStrategy}>
-          <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 flex flex-wrap justify-center items-center gap-2">
+          <div className="-mx-4 px-4 flex flex-wrap justify-center items-start gap-2">
             {stickerItems.length ? stickerItems.map(({ sticker, url }, index) => (
               url ?
                 <SortableSticker
@@ -403,6 +817,17 @@ export const StickerSetSortable = ({
                   index={index + 1}
                   stickerSetTitle={stickerSet.title}
                   stickerUrl={url}
+                  onDeleteSticker={onDeleteSticker}
+                  selectionMode={selectionMode}
+                  isSelected={selectedStickerIds.has(sticker.file_id)}
+                  onStartSelection={startSelectionWithSticker}
+                  onSelectionChange={toggleStickerSelection}
+                  onClearSelection={clearSelection}
+                  onSetStickerEmojiList={
+                    stickerSet.sticker_type === "mask"
+                      ? undefined
+                      : onSetStickerEmojiList
+                  }
                 />
                 :
                 <div key={sticker.file_id} className="flex h-26 w-26 items-center justify-center">
@@ -416,6 +841,32 @@ export const StickerSetSortable = ({
           </div>
         </SortableContext>
       </DndContext>
+      {onDeleteStickers && (
+        <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Delete {selectedStickers.length}{" "}
+                {selectedStickers.length === 1 ? "sticker" : "stickers"}?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This removes the selected stickers from “{stickerSet.title}”. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={selectedStickers.length === 0 || isBulkDeleting}
+                onClick={() => void deleteSelectedStickers()}
+              >
+                {isBulkDeleting ? "Deleting…" : "Delete selected"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 };

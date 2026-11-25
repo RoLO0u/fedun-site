@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, UnplugIcon } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   Dialog,
   DialogTrigger,
@@ -14,6 +15,10 @@ import {
 
 export const UnlinkTelegramButton = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
+  const triggerClassName =
+    "border-destructive/30 bg-destructive/5 text-destructive/80 hover:bg-destructive/10 hover:text-destructive";
 
   const handleUnlink = async () => {
     setIsLoading(true);
@@ -37,8 +42,15 @@ export const UnlinkTelegramButton = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="destructive" disabled={isLoading}>
-          Unlink Telegram
+        <Button
+          variant="outline"
+          size={collapsed ? "icon" : "default"}
+          className={`${triggerClassName} ${collapsed ? "mx-auto h-8 w-8 p-0" : "w-full"}`}
+          aria-label="Unlink Telegram"
+          title={collapsed ? "Unlink Telegram" : undefined}
+          disabled={isLoading}
+        >
+          {collapsed ? <UnplugIcon aria-hidden="true" /> : "Unlink Telegram"}
         </Button>
       </DialogTrigger>
       <DialogContent>

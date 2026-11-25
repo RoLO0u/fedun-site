@@ -43,7 +43,7 @@ export default function HomepageProfile() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="header-outline-control">
+      <DropdownMenuTrigger className="header-outline-control inline-flex">
         <svg className="header-outline-ring size-full" viewBox="0 0 40 40" aria-hidden="true">
           <circle cx="20" cy="20" r="19" pathLength="100" />
         </svg>

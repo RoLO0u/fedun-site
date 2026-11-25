@@ -77,7 +77,7 @@
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
 }
- 
+
 .dark {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
@@ -145,7 +145,7 @@
     content: counter(line);
     @apply inline-block w-4 mr-4 text-right text-gray-500;
   }
-  
+
   figure[data-rehype-pretty-code-figure] code[data-line-numbers] > [data-highlighted-line]::before {
     @apply text-gray-300;
   }
@@ -161,14 +161,14 @@
   figure[data-rehype-pretty-code-figure] pre[data-language="wrap"] {
     @apply whitespace-pre-wrap wrap-break-word overflow-x-hidden;
   }
-  
+
   figure[data-rehype-pretty-code-figure] pre[data-language="wrap"] code {
     @apply whitespace-pre-wrap wrap-break-word;
   }
 
   :not(pre) > code {
     @apply rounded-md bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground;
-    
+
     -webkit-user-select: all;
     user-select: all;
   }
@@ -229,7 +229,6 @@ main {
 
   .header-outline-control {
     position: relative;
-    display: inline-flex;
     cursor: pointer;
   }
 

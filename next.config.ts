@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ['geoip-lite'],
+  serverExternalPackages: ['geoip-lite', 'ffmpeg-static'],
   images: {
     remotePatterns: [
       {

@@ -1,8 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import type { StickerSet } from "@/types/telegram";
+import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { CopyText } from "@/components/copyText";
 
@@ -13,58 +11,22 @@ import { Loader2 } from "lucide-react";
 import { SiTelegram } from "@icons-pack/react-simple-icons";
 import Link from "next/link";
 import { GoogleSignInButton } from "@/components/authButton";
-import { UnlinkTelegramButton } from "@/components/unlinkTelegramButton";
 import { StickerSetDialog, RenderSticker } from "@/components/stickerSet";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useStickerSetsLayout } from "@/components/stickerSetsLayout";
 
 const StickerSetsPage = () => {
-  const [stickerSets, setStickerSets] = useState<StickerSet[]>([]);
-  const [firstStickers, setFirstStickers] = useState<string[]>([]);
-  const [thumbnails, setThumbnails] = useState<(string | null)[]>([]);
-  const [errorState, setErrorState] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState<string | null>(null);
+  const { data, error: errorState, isLoading } = useStickerSetsLayout();
+  const stickerSets = data?.stickerSets ?? [];
+  const firstStickers = data?.firstStickers ?? [];
+  const thumbnails = data?.thumbnails ?? [];
   const {
     data: session,
     isPending,
     error,
   } = authClient.useSession();
-  
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchStickerSets = async () => {
-      setIsLoading(true);
-      setErrorState(null);
-      try {
-        const response = await fetch("/api/sticker-set/get-all");
-        if (!response.ok) {
-          throw new Error(`Error fetching sticker sets: ${response.statusText}`);
-        }
-        const data = await response.json();
-        if (!cancelled) {
-          setStickerSets(data.stickerSets);
-          setFirstStickers(data.firstStickers);
-          setThumbnails(data.thumbnails);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorState(`Error fetching sticker sets: ${error}`);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchStickerSets();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [session?.user?.telegram]);
 
   if (isPending) {
     return (
@@ -138,12 +100,12 @@ const StickerSetsPage = () => {
             <CardHeader className="flex flex-row content-center justify-center text-lg font-semibold">
               {stickerSet.title}
               { thumbnails[index] &&
-                <Image
-                  width={25}
-                  height={25}
-                  src={thumbnails[index]}
-                  unoptimized
-                  alt={`${stickerSet.title} thumbnail`}
+                <RenderSticker
+                  sticker={stickerSet.stickers[0]}
+                  index={1}
+                  stickerSetTitle={stickerSet.title}
+                  stickerUrl={thumbnails[index]}
+                  className="size-6 shrink-0 rounded object-cover"
                 />
               }
             </CardHeader>
@@ -181,9 +143,6 @@ const StickerSetsPage = () => {
             </Link>
           </div>
         )}
-      </div>
-      <div className="mt-4">
-        <UnlinkTelegramButton />
       </div>
     </div>
   );
