@@ -149,7 +149,7 @@ const postPage = async ({
               <a 
                 key={heading.id} 
                 href={`#${heading.id}`}
-                className={`text-muted-foreground hover:text-foreground transition-colors ${
+                className={`home-link text-muted-foreground hover:text-foreground transition-colors ${
                   heading.level === 3 ? 'ml-3' : '' // Indent H3s
                 } ${heading.level === 4 ? 'ml-6' : ''
                 } `}

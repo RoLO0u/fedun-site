@@ -16,7 +16,7 @@ const postsPage = async () => {
       <div className="flex flex-col gap-2">
         {posts.map((post) => (
           <div key={post.id} className="flex flex-col">
-            <a href={`/post/${post.id}`} className="text-lg hover:underline">
+            <a href={`/post/${post.id}`} className="home-link text-lg">
               {post.title}
             </a>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
