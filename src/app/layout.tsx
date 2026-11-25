@@ -52,8 +52,8 @@ export default async function RootLayout({
         >
         <Toaster />
         <header className="flex items-center justify-between">
-          <Link href="/" passHref>
-            <span className={`flex flex-row gap-0 hover:cursor-pointer hover:underline`}>
+          <Link href="/" passHref className="home-brand-link">
+            <span className="flex flex-row gap-0 hover:cursor-pointer">
               <Image
                 src="/logo.ico"
                 alt="Home"
@@ -62,27 +62,33 @@ export default async function RootLayout({
                 height={32}
                 unoptimized
               />
-              <span className="font-semibold text-xl">Fedun.Site</span>
+              <span className="home-link inline-block font-semibold text-xl">Fedun.Site</span>
             </span>
           </Link>
           <span className={`flex flex-row gap-4 items-center`}>
-            <Link href="https://github.com/RoLO0u" target="_blank">
+            <Link href="https://github.com/RoLO0u" target="_blank" className="header-outline-control">
               <Image
                 width={30}
                 height={30} 
                 src="/github.svg"
                 alt="GitHub"
-                className="dark:invert hover:drop-shadow-[0_0_1rem_rgb(150,150,150)] duration-300"
+                className="dark:invert"
               />
+              <svg className="header-outline-ring size-full" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="19" pathLength="100" />
+              </svg>
             </Link>
-            <Link href="https://t.me/feddunn" target="_blank">
+            <Link href="https://t.me/feddunn" target="_blank" className="header-outline-control">
               <Image
                 width={30}
                 height={30}
                 src="/telegram.svg"
                 alt="Telegram"
-                className="dark:invert hover:drop-shadow-[0_0_1rem_rgb(0,200,200)] duration-300"
+                className="dark:invert"
               />
+              <svg className="header-outline-ring size-full" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="19" pathLength="100" />
+              </svg>
             </Link>
             <HomepageProfile />
             <ModeToggle />

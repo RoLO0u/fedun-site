@@ -43,12 +43,15 @@ export default function HomepageProfile() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger className="header-outline-control">
+        <svg className="header-outline-ring size-full" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="19" pathLength="100" />
+        </svg>
         <Avatar>
           <AvatarImage
             src={session.data?.user.image || "/default-avatar.svg"}
             alt="@user-avatar"
-            className={`${session.data?.user.image ? '' : 'dark:invert'} hover:drop-shadow-[0_0_1rem_rgb(200,0,200)] duration-300 cursor-pointer`}
+            className={`${session.data?.user.image ? '' : 'dark:invert'}`}
           />
           <AvatarFallback>CN</AvatarFallback>
           { 
