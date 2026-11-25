@@ -137,31 +137,34 @@ const calculateMessagesOverTime = (
   user?: string
 ): GenericChartType => {
   const rawCount: TimeCountType = [];
+  let lastDate: Date | undefined;
+  const formatDate = (date: Date) =>
+    `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
 
   messages.forEach((message) => {
     if (user && message.from !== user || message.date == null) {
       return;
     }
     const date = new Date(message.date);
-    const dateString = date.toLocaleDateString();
+    const dateString = formatDate(date);
     if (!rawCount.at(0)) {
       rawCount.push({
         count: 1,
         date: dateString,
       });
+      lastDate = date;
       return;
-    } else if (rawCount.at(-1)?.date === dateString) {
+    } else if (lastDate?.toDateString() === date.toDateString()) {
       rawCount.at(-1)!.count += 1;
       return;
     }
-    const lastDate = new Date(rawCount.at(-1)!.date);
-    if (date.getTime() - lastDate.getTime() > MILISECONDS_IN_DAY) {
+    if (lastDate && date.getTime() - lastDate.getTime() > MILISECONDS_IN_DAY) {
       const daysDiff = Math.floor((date.getTime() - lastDate.getTime()) / MILISECONDS_IN_DAY);
       for (let i = 1; i < daysDiff; i++) {
         const newDate = new Date(lastDate.getTime() + (i * MILISECONDS_IN_DAY));
         rawCount.push({
           count: 0,
-          date: newDate.toLocaleDateString(),
+          date: formatDate(newDate),
         });
       }
     }
@@ -169,6 +172,7 @@ const calculateMessagesOverTime = (
         count: 1,
         date: dateString,
       });
+    lastDate = date;
   })
 
   return rawCountToSchema(rawCount);

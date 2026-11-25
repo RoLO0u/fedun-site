@@ -10,24 +10,23 @@ const redirectPage = async ({
 }: {
   params: Promise<{ link: string }>;
 }) => {
-  const headersList = await headers();
   const link = await params;
   const foundLink = await getLinkByShortUrl(link.link);
 
-  const forwardedFor = headersList.get("x-forwarded-for");
-  const ip = forwardedFor?.split(',')[0]?.trim() || 'Unknown IP';
-  const geo = geoip.lookup(ip);
-  const country = geo?.country;
-  
-  if (foundLink) {
-    if (foundLink.collectStats) {
-      await incrementAccessCount(link.link, country);
-    }
-    return redirect(foundLink.url);
+  if (!foundLink) {
+    return null;
   }
-  
-  
-  return null;
+
+  if (foundLink.collectStats) {
+    const headersList = await headers();
+    const forwardedFor = headersList.get("x-forwarded-for");
+    const ip = forwardedFor?.split(",")[0]?.trim() || "Unknown IP";
+    const country = geoip.lookup(ip)?.country;
+
+    await incrementAccessCount(link.link, country);
+  }
+
+  return redirect(foundLink.url);
 }
 
 export default redirectPage;

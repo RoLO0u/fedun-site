@@ -29,7 +29,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import React from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { CircleXIcon } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { CircleXIcon, TriangleAlertIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { GoogleSignInButton } from "@/components/authButton";
@@ -53,12 +63,13 @@ const LinkPage = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       url: "",
-      collectStats: true,
+      collectStats: false,
     },
   });
   const session = authClient.useSession();
 
   const [errorState, setErrorState] = React.useState<string | null>(null);
+  const [statsConfirmationOpen, setStatsConfirmationOpen] = React.useState(false);
 
   const onSubmit = async (values: FormValues) => {
     const url = values.url;
@@ -129,16 +140,35 @@ const LinkPage = () => {
                   <FieldGroup>
                     <Field orientation="horizontal" className="gap-2">
                       <Checkbox
-                        id="terms"
+                        id="collect-stats"
                         className="flex gap-2"
                         checked={form.watch("collectStats")}
                         onCheckedChange={(value) => {
-                          form.setValue("collectStats", !!value);
+                          if (value === true) {
+                            setStatsConfirmationOpen(true);
+                          } else {
+                            form.setValue("collectStats", false);
+                          }
                         }}
                       />
-                      <FieldLabel htmlFor="terms">
+                      <FieldLabel htmlFor="collect-stats">
                         Collect viewing statistics
                       </FieldLabel>
+                      <Popover>
+                        <PopoverTrigger
+                          type="button"
+                          aria-label="Privacy information about viewing statistics"
+                          className="inline-flex size-6 items-center justify-center"
+                        >
+                          <TriangleAlertIcon className="size-4 text-amber-600 dark:text-amber-400" />
+                        </PopoverTrigger>
+                        <PopoverContent className="max-w-[calc(100vw-2rem)] text-sm">
+                          When enabled, visitor IPs are used to estimate country. We store visit
+                          counts and country totals, not raw click IPs. If you share this link,
+                          you&apos;re responsible for any privacy notices required for your use.
+                          When disabled, link statistics are not recorded.
+                        </PopoverContent>
+                      </Popover>
                     </Field>
                   </FieldGroup>
                 </FormControl>
@@ -147,6 +177,30 @@ const LinkPage = () => {
           />
           </form>
           </Form>
+          <AlertDialog
+            open={statsConfirmationOpen}
+            onOpenChange={setStatsConfirmationOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Enable viewing statistics?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Enabling statistics uses visitors&apos; IP addresses to estimate their country.
+                  We store visit counts and country totals, not raw click IP addresses. If you
+                  share a link with statistics enabled, you are responsible for providing any
+                  privacy notices required for your use.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep disabled</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => form.setValue("collectStats", true)}
+                >
+                  Acknowledge and enable
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
         <CardFooter className="flex justify-between gap-3">
           <Button type="submit" form="url">
@@ -159,8 +213,10 @@ const LinkPage = () => {
                   Statistics we store
                 </PopoverTrigger>
                 <PopoverContent className="w-96">
-                  We store the number of times a short link is accessed, the date and time of the last access and the country of the users that accessed the link. <br />
-                  We do not store any information about the user accessing the link apart from the country, given the "collect viewing statistics" is on. The statistics are stored in a database on our server.
+                  When enabled, we use each visitor&apos;s IP address to estimate their country.
+                  We store the total number of visits, the latest access time, and country-level
+                  totals, but not raw click IP addresses. When disabled, link statistics are not
+                  recorded. Hosting and account-security logs are separate.
                 </PopoverContent>
               </Popover>
             </div>
@@ -170,7 +226,8 @@ const LinkPage = () => {
                   Privacy Policy
                 </PopoverTrigger>
                 <PopoverContent className="w-96">
-                  You can delete your short link and its statistics at any time by clicking on the "Delete" button next to the short link in your dashboard.
+                  You can delete your short link and its statistics at any time by clicking on
+                  the &quot;Delete&quot; button next to the short link in your dashboard.
                 </PopoverContent>
               </Popover>
             </div>

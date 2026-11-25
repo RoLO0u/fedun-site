@@ -160,41 +160,66 @@ const dashboardPage = () => {
     );
   }
 
+  const shortUrl = `${window.location.origin}/l/${foundLink.shortUrl}`;
+
   return (
-    <main className="flex gap-4 flex-col grow justify-center content-center h-full mt-4">
-      <div className="flex gap-4 content-center flex-wrap justify-center h-full">
-        <Card className="gap-4 px-5">
+    <main className="mt-4 flex grow flex-col gap-4">
+      <div className="grid w-full items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)]">
+        <Card className="w-full gap-4">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold mb-4 line-clamp-2">Dashboard for {foundLink.url}</CardTitle>
+            <CardTitle className="text-xl font-semibold">Link details</CardTitle>
           </CardHeader>
-          <CardContent className="mb-4">
-            <div className="flex items-center">Short URL:
-              <Link className="text-blue-500 dark:text-indigo-500" href={`${window.location.origin}/l/${foundLink.shortUrl}`}>{`${window.location.origin}/l/${foundLink.shortUrl}`}</Link>
-              <Popover>
-                <PopoverTrigger>
-                  <ClipboardIcon className="ml-2 inline-block w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/l/${foundLink.shortUrl}`);
-                  }} />
-                </PopoverTrigger>
-                <PopoverContent className="w-fit">
-                  <div className="flex items-center">Success!
-                    <ClipboardCheckIcon className="ml-2 inline-block w-4 h-4 text-green-500 dark:text-green-700" />
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <Separator className="my-2" />
-            <div>Original URL: <Link className="text-blue-500 dark:text-indigo-500" href={foundLink.url}>{foundLink.url}</Link></div>
-            <Separator className="my-2" />
-            <p>Access Count: {foundLink.collectStats ? foundLink.accessCount : "N/A"}</p>
-            <Separator className="my-2" />
-            <p>Last Accessed At: {foundLink.accessedAt ? new Date(foundLink.accessedAt).toLocaleString() : "N/A"}</p>
-            <Separator className="my-2" />
-            <div className="flex flex-col items-center">
-              <p className="mr-auto">Link to this dashboard:</p>
-              <div className="mr-auto">
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">Short URL</p>
+              <div className="min-w-0 overflow-x-auto">
                 <Popover>
-                  <PopoverTrigger className="underline flex items-center gap-2" onClick={() => {
+                  <PopoverTrigger
+                    className="flex w-max items-center gap-2 whitespace-nowrap text-muted-foreground underline hover:text-foreground"
+                    onClick={() => navigator.clipboard.writeText(shortUrl)}
+                  >
+                    {shortUrl}
+                    <ClipboardIcon className="inline-block w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-fit">
+                    <div className="flex items-center">Success!
+                      <ClipboardCheckIcon className="ml-2 inline-block w-4 h-4 text-green-500 dark:text-green-700" />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <Separator />
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">Destination URL</p>
+              <div className="overflow-x-auto whitespace-nowrap">
+                <Link className="text-blue-500 dark:text-indigo-500" href={foundLink.url}>
+                  {foundLink.url}
+                </Link>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-md bg-muted/50 p-3">
+                <p className="text-sm text-muted-foreground">Visits</p>
+                <p className="font-semibold">
+                  {foundLink.collectStats ? foundLink.accessCount : "Statistics off"}
+                </p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-3">
+                <p className="text-sm text-muted-foreground">Last visited</p>
+                <p className="font-semibold">
+                  {foundLink.collectStats && foundLink.accessedAt
+                    ? new Date(foundLink.accessedAt).toLocaleString("uk-UA")
+                    : "—"}
+                </p>
+              </div>
+            </div>
+            <Separator />
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">Dashboard URL</p>
+              <div className="w-full min-w-0 overflow-x-auto">
+                <Popover>
+                  <PopoverTrigger className="flex w-max items-center gap-2 whitespace-nowrap underline" onClick={() => {
                       navigator.clipboard.writeText(`${window.location.origin}/l/${foundLink.shortUrl}/dashboard`);
                     }} >
                     {`${window.location.origin}/l/${foundLink.shortUrl}/dashboard`}
@@ -220,15 +245,14 @@ const dashboardPage = () => {
               </div>
               </>
             }
-            <Separator className="my-2" />
-            <div className="w-full flex justify-end">
+            <div className="flex justify-end border-t pt-4">
               <Button variant="destructive" onClick={() => {setDeleteDialogOpen(true)}}>
                 Delete
               </Button>
             </div>
           </CardContent>
         </Card>
-        <div>
+        <div className="flex flex-col gap-4">
           {errorState &&
             <Alert className="mb-4 py-5 px-7 max-w-fit text-lg">
               <AlertTitle>Error</AlertTitle>
@@ -238,22 +262,34 @@ const dashboardPage = () => {
             </Alert>
           }
           {created === "true" && 
-          <Alert className="mb-4 py-5 px-7 max-w-fit text-lg">
-            <AlertTitle className="line-clamp-2">Your redirect was added to the clipboard!</AlertTitle>
+          <Alert className="py-4">
+            <AlertTitle>Short link created</AlertTitle>
             <AlertDescription>
-              Here's the shortened url:
-              <div className="flex items-center">
-              <Link className="text-blue-500 dark:text-indigo-500" href={`${window.location.origin}/l/${foundLink.shortUrl}`}>{`${window.location.origin}/l/${foundLink.shortUrl}`}</Link>
-              <ClipboardCheckIcon className="ml-2 inline-block w-4 h-4 text-green-500 dark:text-green-700" />
+              Click the short URL to copy it:
+              <div className="mt-1 min-w-0 overflow-x-auto">
+                <Popover>
+                  <PopoverTrigger
+                    className="flex w-max items-center gap-2 whitespace-nowrap text-muted-foreground underline hover:text-foreground"
+                    onClick={() => navigator.clipboard.writeText(shortUrl)}
+                  >
+                    {shortUrl}
+                    <ClipboardIcon className="inline-block w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-fit">
+                    <div className="flex items-center">Success!
+                      <ClipboardCheckIcon className="ml-2 inline-block w-4 h-4 text-green-500 dark:text-green-700" />
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </AlertDescription>
           </Alert>
           }
-          <Card className="gap-4">
+          <Card className="w-full gap-4">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold mb-4">QR Code</CardTitle>
+              <CardTitle className="text-xl font-semibold">QR code</CardTitle>
             </CardHeader>
-            <CardContent className="mb-4 flex flex-col items-center">
+            <CardContent className="flex flex-col items-center">
               <ReactQRCode 
                 value={`${window.location.origin}/l/${foundLink.shortUrl}`}
                 ref={ref}
@@ -266,16 +302,17 @@ const dashboardPage = () => {
           </Card>
         </div>
         {foundLink.collectStats && (
-        <Card className="gap-4">
+        <Card className="w-full gap-4 lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold mb-4">Country Access Statistics</CardTitle>
+            <CardTitle className="text-xl font-semibold">Country access statistics</CardTitle>
           </CardHeader>
-          <CardContent className="mb-4 flex flex-col items-center">
+          <CardContent className="flex flex-col items-center">
               {mapData && resolvedTheme ? (
                 <WorldMap
                   key={resolvedTheme}
                   value-suffix="accesses"
-                  size="responsive"
+                  size="xxl"
+                  containerClassName="flex w-full justify-center"
                   data={mapData}
                   backgroundColor="var(--card)"
                   borderColor="var(--foreground)"
@@ -321,7 +358,7 @@ const dashboardPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="flex flex-col gap-2 items-center">
+      <div className="w-full">
         <LinksList userId={session.data?.user?.id || ""} />
       </div>
     </main>

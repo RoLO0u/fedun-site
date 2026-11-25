@@ -32,12 +32,13 @@ function useResponsiveChartMargin() {
 }
 
 function VerticalChart({
-  chartConfig, chartData, title}: 
+  chartConfig, chartData, title, controls}:
   React.ComponentProps<"div"> & 
   {
     chartConfig: ChartConfig,
     chartData: GenericChartType,
-    title: string
+    title: string,
+    controls?: React.ReactNode,
   }) {
   const margin = useResponsiveChartMargin();
 
@@ -47,6 +48,7 @@ function VerticalChart({
         <CardTitle>
           {title}
         </CardTitle>
+        {controls}
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="w-full min-h-screen sm:min-h-[80vh] text-xl md:text-base md:min-h-[60vh] lg:min-h-[50vh] xl:h-auto">
@@ -93,12 +95,13 @@ function VerticalChart({
 }
 
 function TimeMessageChart({
-  chartConfig, chartData, title}:
+  chartConfig, chartData, title, controls}:
   React.ComponentProps<"div"> & 
   {
     chartConfig: ChartConfig,
     chartData: GenericChartType,
-    title: string
+    title: string,
+    controls?: React.ReactNode,
   }) {
   return (
     <Card className="w-full">
@@ -106,6 +109,7 @@ function TimeMessageChart({
         <CardTitle>
           {title}
         </CardTitle>
+        {controls}
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="w-full min-h-screen sm:min-h-[80vh] text-xl md:text-base md:min-h-[60vh] lg:min-h-[50vh] xl:h-auto">
