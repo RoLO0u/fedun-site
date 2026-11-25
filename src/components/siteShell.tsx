@@ -33,7 +33,7 @@ const SiteHeader = ({
     }`}
   >
     <div className="flex items-center gap-2">
-      {hasSidebar && <SidebarTrigger className="md:hidden" />}
+      {hasSidebar && <SidebarTrigger label="Packs" className="md:hidden" />}
       <Link href="/" className="home-brand-link">
         <span className="flex flex-row gap-0 hover:cursor-pointer">
           <Image

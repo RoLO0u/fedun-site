@@ -15,9 +15,11 @@ import { StickerSetDialog, RenderSticker } from "@/components/stickerSet";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useStickerSetsLayout } from "@/components/stickerSetsLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const StickerSetsPage = () => {
   const [dialogOpen, setDialogOpen] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   const { data, error: errorState, isLoading } = useStickerSetsLayout();
   const stickerSets = data?.stickerSets ?? [];
   const firstStickers = data?.firstStickers ?? [];
@@ -121,9 +123,19 @@ const StickerSetsPage = () => {
                 open={dialogOpen === stickerSet.name}
                 onOpenChange={(open) => setDialogOpen(open ? stickerSet.name : null)}
               >
-                <DialogTrigger asChild>
-                  <Button variant="outline">Manage {stickerSet.stickers.length} Stickers</Button>
-                </DialogTrigger>
+                {isMobile ? (
+                  <Button asChild variant="outline">
+                    <Link href={`/sticker-sets/${encodeURIComponent(stickerSet.name)}`}>
+                      Edit {stickerSet.stickers.length} Stickers
+                    </Link>
+                  </Button>
+                ) : (
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      Manage {stickerSet.stickers.length} Stickers
+                    </Button>
+                  </DialogTrigger>
+                )}
                 <StickerSetDialog
                   stickerSet={stickerSet}
                   thumbnail={thumbnails[index]}

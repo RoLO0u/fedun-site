@@ -29,6 +29,17 @@ const createWebpBlob = (canvas: HTMLCanvasElement, quality: number) =>
     );
   });
 
+const createPngBlob = (canvas: HTMLCanvasElement) =>
+  new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Could not prepare the image for Telegram."));
+        return;
+      }
+      resolve(blob);
+    }, "image/png");
+  });
+
 const optimizeStickerImage = async (
   file: File,
   stickerType: string,
@@ -72,11 +83,26 @@ const optimizeStickerImage = async (
     }
 
     for (const quality of [0.92, 0.82, 0.72, 0.62, 0.52, 0.42, 0.32, 0.22, 0.12]) {
-      const blob = await createWebpBlob(canvas, quality);
+      let blob: Blob;
+      let extension: "png" | "webp";
+      try {
+        blob = await createWebpBlob(canvas, quality);
+        extension = "webp";
+      } catch {
+        blob = await createPngBlob(canvas);
+        extension = "png";
+        if (blob.size > maxFileSize) {
+          throw new Error(
+            `Your browser cannot create WEBP images, and the PNG image exceeds Telegram's ${Math.round(maxFileSize / 1024)} KB limit. Try a simpler image or another browser.`,
+          );
+        }
+      }
+
       if (blob.size <= maxFileSize) {
         const baseName = file.name.replace(/\.[^.]+$/, "");
-        return new File([blob], `${baseName}.webp`, {
-          type: "image/webp",
+        const type = extension === "webp" ? "image/webp" : "image/png";
+        return new File([blob], `${baseName}.${extension}`, {
+          type,
           lastModified: Date.now(),
         });
       }
